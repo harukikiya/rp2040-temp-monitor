@@ -1,12 +1,12 @@
 # -- Project information -----------------------------------------------------
-project = "RP2040 Temparature Monitor"
-author = "Haruki Kiya"
+project = "RP2040 Temperature Monitor"
+author = "Haruki"
 language = "ja"
 
 # -- General configuration ---------------------------------------------------
 extensions = [
     "myst_parser",
-    "sphinx-needs",
+    "sphinx_needs",
 ]
 
 source_suffix = {
@@ -33,22 +33,40 @@ needs_types = [
     },
 ]
 
-# ステータスの選択肢（値の表記揺れを防ぐ）
-needs_statuses = [
-    {"name": "draft", "description": "ドラフト"},
-    {"name": "approved", "description": "承認済み"},
-    {"name": "obsolute", "description": "廃止"},
-]
+# 要件のフィールド定義
+needs_fields = {
+    "status": {
+        "description": "要件のステータス",
+        "schema": {
+            "enum": ["draft", "approved", "obsolete"],
+        },
+        "nullable": False,
+    },
+    "type_kind": {
+        "description": "要件の種類(Functional, Timing, Safety等)",
+        "schema": {"type": "string"},
+        "nullable": True,
+    },
+    "tbd_items": {
+        "description": "未確定項目",
+        "schema": {"type": "string"},
+        "nullable": True,
+    },
+    "rationale": {
+        "description": "要件の根拠",
+        "schema": {"type": "string"},
+        "nullable": True,
+    },
+}
 
-# 追加フィールド
-needs_extra_options = [
-    "type_kind",
-    "tbd_items",
-    "rationale",
-]
-
-# トレースリレーション（今日は使わないが設定だけ）
-needs_extra_links = [
-    {"option": "refines", "incoming": "refined by", "outgoing": "refines"},
-    {"option": "verifies", "incoming": "verified by", "outgoing": "verifies"},
-]
+# トレースリレーション
+needs_links = {
+    "refines": {
+        "incoming": "refined by",
+        "outgoing": "refines",
+    },
+    "verifies": {
+        "incoming": "verified by",
+        "outgoing": "verifies",
+    },
+}

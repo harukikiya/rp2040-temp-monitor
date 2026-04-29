@@ -3,7 +3,7 @@
 sync:
 	uv sync
 
-html: synv
+html: sync
 	uv run sphinx-build -b html -W docs _build/html
 
 clean:
