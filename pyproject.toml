@@ -1,0 +1,11 @@
+[project]
+name = "rp2040-temp-monitor-docs"
+version = "0.1.0"
+description = "RP2040 Temperature Monitor - documentation"
+requires-python = ">=3.12"
+dependencies = [
+    "sphinx>=7.0",
+    "sphinx-needs>=2.1",
+    "myst-parser>=2.0",
+    "sphinx-rtd-theme>=2.0",
+]

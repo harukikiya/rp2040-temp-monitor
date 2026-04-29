@@ -1,0 +1,22 @@
+{
+    "name": "rp2040-temp-monitor docs",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "workspaceFolder": "/workspace",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "executablebookproject.myst-highlight",
+                "lextudio.restructuredtext",
+                "ms-python.python"
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/workspace/.venv/bin/python"
+            }
+        }
+    },
+    "postCreateCommand": "uv sync"
+}

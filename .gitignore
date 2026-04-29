@@ -1,0 +1,13 @@
+# Python / uv
+_build/
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Rust(将来用)
+target/
+
+# OS
+.DS_Store
+Thumbs.db
