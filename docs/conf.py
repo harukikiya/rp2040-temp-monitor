@@ -43,6 +43,13 @@ needs_types = [
         "color": "#DF744A",
         "style": "node",
     },
+    {
+        "directive": "swreq",
+        "title": "ソフトウェア要件",
+        "prefix": "SWR_",
+        "color": "##FEDCD2",
+        "style": "node",
+    },
 ]
 
 # 要件のフィールド定義
@@ -69,6 +76,14 @@ needs_fields = {
         "schema": {"type": "string"},
         "nullable": True,
     },
+    "layer": {
+        "description": "要求が属するレイヤ",
+        "schema": {
+            "type": "string",
+            "enum": ["application", "service", "driver", "hal"],
+        },
+        "nullable": True,
+    }
 }
 
 # トレースリレーション
