@@ -7,6 +7,7 @@ language = "ja"
 extensions = [
     "myst_parser",
     "sphinx_needs",
+    "sphinxcontrib.plantuml"
 ]
 
 source_suffix = {
@@ -21,6 +22,10 @@ exclude_patterns = ["_build"]
 html_theme = "sphinx_rtd_theme"
 html_title = project
 
+# -- PlantUML --------------------------------------------------------------
+plantuml = "plantuml"
+plantuml_output_format = "svg"
+
 # -- sphinx-needs settings ---------------------------------------------------
 # 要件タイプの定義
 needs_types = [
@@ -29,6 +34,13 @@ needs_types = [
         "title": "システム要件",
         "prefix": "SYS_",
         "color": "#BFD8D2",
+        "style": "node",
+    },
+    {
+        "directive": "arc",
+        "title": "アーキテクチャ要件",
+        "prefix": "ARC_",
+        "color": "#DF744A",
         "style": "node",
     },
 ]

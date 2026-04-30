@@ -8,4 +8,5 @@ dependencies = [
     "sphinx-needs>=2.1",
     "myst-parser>=2.0",
     "sphinx-rtd-theme>=2.0",
+    "sphinxcontrib-plantuml>=0.30",
 ]

@@ -1,11 +1,14 @@
 FROM debian:bookworm-slim
 
-# 基本ツール
+# 基本ツール + PlantUML（Java依存）
 RUN apt-get update && apt-get install -y \
     make \
     git \
     curl \
     ca-certificates \
+    plantuml \
+    default-jre-headless \
+    graphviz \
     && rm -rf /var/lib/apt/lists/*
 
 # UTF-8ロケール(slimでもC.UTF-8は標準で利用可能)

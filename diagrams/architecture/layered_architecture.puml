@@ -1,0 +1,68 @@
+@startuml layered_architecture
+
+skinparam componentStyle uml2
+skinparam component {
+    BackgroundColor #FEFCF8
+    BorderColor #444441
+}
+skinparam defaultFontName "Helvetica"
+
+title RO 2040 Temperature Monitor - Layered Architecture
+
+package "Application Layer" as app #BFD8D2 {
+    component "Temperature Monitor App" as temp_app
+    component "Display Controller" as display_ctrl
+}
+
+package "Service Layer" as service #FEDCD2 {
+    component "Ring Buffer" as ring_buf
+    component "Statistics" as stats
+    component "Trend Analyzer" as trend
+    component "IPC API" as ipc
+}
+
+package "Driver Layer" as driver #DF744A {
+    component "ADC+DMA Driver" as adc_drv
+    component "LCD1602 Driver" as lcd_drv
+}
+
+package "HAL (Hardware Abstraction Layer)" as hal #DCB239 {
+    component "ADC HAL" as adc_hal
+    component "DMA HAL" as dma_hal
+    component "I2C HAL" as i2c_hal
+    component "Timer HAL" as tim_hal
+    component "SIO HAL" as sio_hal
+}
+
+package "Register Access Layer" as reg #9856A8 {
+    component "Generated from SVD\n(svdconv output)" as svd_gen
+}
+
+package "Hardware (RP2040)" as hw #888888 {
+    component "Cortex-M0+ x2" as cpu
+    component "ADC" as hw_adc
+    component "DMA" as hw_dma
+    component "I2C0" as hw_i2c
+    component "SIO (Inter-Core)" as hw_sio
+}
+
+' レイヤ間の依存関係（上から下のみ許可）
+app --> service
+service --> driver
+service --> hal : "(IPC直接利用)"
+driver --> hal
+hal --> reg
+reg --> hw
+
+' 注釈
+note right of service
+    ハードウェア非依存。
+    ホスト側でユニットテスト可能。
+end note
+
+note right of hal
+    ペリフェラル抽象化。
+    モック化によりDriver層もホストテスト可能。
+end note
+
+@enduml
