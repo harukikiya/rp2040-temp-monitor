@@ -6,6 +6,8 @@ sync:
 html: sync
 	uv run sphinx-build -b html -W docs _build/html
 
+rebuild: clean html
+
 clean:
 	rm -rf _build/
 
