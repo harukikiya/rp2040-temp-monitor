@@ -16,7 +16,10 @@ source_suffix = {
 }
 
 master_doc = "index"
-exclude_patterns = ["_build"]
+exclude_patterns = [
+    "_build",
+    "common/adr/template.md",
+]
 
 # -- HTML output -------------------------------------------------------------
 html_theme = "sphinx_rtd_theme"
