@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     plantuml \
     default-jre-headless \
     graphviz \
+    fonts-noto-cjk \
     && rm -rf /var/lib/apt/lists/*
 
 # UTF-8ロケール(slimでもC.UTF-8は標準で利用可能)

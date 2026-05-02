@@ -10,6 +10,7 @@
 :maxdepth: 1
 
 0001-integrated-adc-dma-driver
+0002-inter-core-data-flow
 ```
 
 ## 新規ADRの追加

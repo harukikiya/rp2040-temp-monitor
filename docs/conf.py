@@ -1,3 +1,20 @@
+import warnings
+warnings.filterwarnings("ignore", message=".*missing from font.*")
+
+# -- Matplotlib 日本語フォント設定 -------------------------------------------
+# sphinx-needsの円グラフ・棒グラフでの日本語表示用設定。
+# 現状(sphinx-needs 8.0.0)ではrcParams上書きの実装の問題で反映されないため、
+# グラフタイトルは英語で書いている。将来sphinx-needs側で改善されれば日本語化可能。
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+plt.rcParams["font.family"] = "Noto Sans CJK JP"
+plt.rcParams["font.sans-serif"] = ["Noto Sans CJK JP"]
+plt.rcParams["font.serif"] = ["Noto Sans CJK JP"]
+plt.rcParams["font.monospace"] = ["Noto Sans CJK JP"]
+plt.rcParams["axes.unicode_minus"] = False
+
 # -- Project information -----------------------------------------------------
 project = "RP2040 Temperature Monitor"
 author = "Haruki"
