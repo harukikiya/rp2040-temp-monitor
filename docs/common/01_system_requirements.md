@@ -4,7 +4,7 @@
 
 ````{sysreq} 内蔵温度センサの継続的な可視化
 :id: SYS_001
-:status: approved
+:status: draft
 :type_kind: Functional
 :tbd_items: TBD-001 表示周期500msは仮置き、実機での視認性確認後に調整。TBD-002 サンプリング周期100Hzも仮置き、温度センサの応答時間とリングバッファサイズのバランスで再評価。
 
@@ -14,7 +14,7 @@ LCD1602に温度として500ms周期で表示すること。
 
 ````{sysreq} 温度の統計表示
 :id: SYS_002
-:status: approved
+:status: draft
 :type_kind: Functional
 :tbd_items: TBS-003 統計対象期間10秒は仮置き、実機動作確認後に調整。
 
@@ -23,7 +23,7 @@ LCD1602に温度として500ms周期で表示すること。
 
 ````{sysreq} 温度変化のトレンド表示
 :id: SYS_003
-:status: approved
+:status: draft
 :type_kind: Functional
 :tbd_items: TBD-004 トレンド判定期間1分は仮置き。TBD-005 上昇下降の判定閾値は未定、実機での温度変動幅を観察して決める。
 

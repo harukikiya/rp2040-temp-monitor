@@ -433,6 +433,7 @@ Application層はこの戻り値を見てLED通知の開始判断を行うこと
 :status: draft
 :type_kind: Functional
 :layer: driver
+:refines: SYS_006
 :rationale: LCDの電源断などからの復帰時にはHD44780の初期化シーケンスを再実行する必要がある。この回復処理はLCDの内部状態管理であり、Driver層の責務(ARC_003準拠)。Application層に再初期化の知識を持たせない。
 
 LCD Driverはエラー状態にある間も、表示要求が来たタイミング（または独自のリトライタイミング）でI2C送信を試行すること。

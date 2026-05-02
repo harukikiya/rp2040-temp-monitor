@@ -117,3 +117,12 @@ needs_links = {
         "outgoing": "verifies",
     },
 }
+
+# -- 要件管理の品質チェック ---------------------------------------------------
+# これらのフィルタにマッチする要件があるとwarningが出る。
+# `make html`の-Wオプションによりwarningはerrorに昇格し、ビルドが失敗する。
+needs_warnings = {
+    "swr_without_parent": "type == 'swreq' and not refines",
+    "sys_without_swr": "type == 'sysreq' and not refines_back",
+    "approved_with_tbd": "status == 'approved' and tbd_items is not None and tbd_items != ''",
+}
