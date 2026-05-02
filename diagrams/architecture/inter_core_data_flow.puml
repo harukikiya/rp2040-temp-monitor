@@ -1,0 +1,71 @@
+@startuml inter_core_data_flow
+
+skinparam componentStyle uml2
+skinparam component {
+    BackgroundColor #FEFCF8
+    BorderColor #444441
+}
+skinparam defaultFontName "Helvetica"
+
+title RP2040 Temperature Monitor - Inter-Core Data Flow
+
+'Core0側
+package "Core0（I/O系）" as core0 #BFD8D2 {
+    component "ADC + DMA\n（自動転送）" as adc_dma
+    component "Ring Buffer\n（8192 samples）" as ring_buf
+    component "LCD Display\n（500ms周期）" as lcd
+}
+
+'Core1側
+package "Core1（計算系）" as core1 #FEDCD2 {
+    component "Statistics\n（最新値・最大・最小・平均）" as stats
+    component "Trend Analyzer\n（上昇/下降/横ばい）" as trend
+}
+
+'ハードウェア
+package "Hardware" as hw #DCB239 {
+    component "Temperature Sensor\n（ADC ch4）" as sensor
+}
+
+'共有領域
+package "Shared Memory" as shared #DF744A {
+    component "Statistics Result\n（最新値・最大・最小・平均）" as stats_result
+    component "Trend Result\n（上昇/下降/横ばい）" as trend_result
+}
+
+'データフロー
+sensor --> adc_dma : "アナログ電圧\n（100Hz サンプリング）"
+adc_dma --> ring_buf : "12bit ADC値\n（DMA経由、CPU介入なし）"
+
+ring_buf .> stats : "サンプル列読み出し\n（500ms周期）"
+ring_buf .> trend : "サンプル列読み出し\n（500ms周期）"
+
+stats --> stats_result : "計算結果書き込み"
+trend --> trend_result : "判定結果書き込み"
+
+stats_result .> lcd : "表示用データ読み出し\n（500ms周期）"
+trend_result .> lcd : "表示用データ読み出し\n（500ms周期）"
+
+'注釈
+note bottom of ring_buf
+    Core0が書き、Core1が読む。
+    ロックフリー、最大1サンプルの不整合を許容（SWR_008）。
+end note
+
+note bottom of shared
+    Core1が書き、Core0が読む。
+    整合性保証は SYS_005 で議論。
+    具体的な機構は次回確定。
+end note
+
+note right of core0
+    Core0は500ms周期でLCDを更新する。
+    ADC/DMAは100Hzで自動動作
+end note
+
+note right of core1
+    Core1は500ms周期で
+    統計とトレンドを計算する。
+end note
+
+@enduml
