@@ -1,0 +1,13 @@
+# svdconv生成ログ（生成ヘッダ自体はGit管理する）
+include/generated/svdconv.log
+
+# ビルド成果物
+build/
+*.elf
+*.bin
+".uf2
+*.map
+
+# エディタ・OS固有
+.vscode/settings.json
+.DS_Store
