@@ -11,3 +11,6 @@ build/
 # エディタ・OS固有
 .vscode/settings.json
 .DS_Store
+
+# Doxygen生成物(再生成可能なため Git管理しない)
+docs/api/

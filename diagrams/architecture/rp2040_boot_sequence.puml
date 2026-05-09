@@ -1,0 +1,21 @@
+@startuml rp2040_boot_sequence
+
+skinparam backgroundColor #FEFCF8
+skinparam shadowing false
+
+title RP2040 ブートシーケンス
+
+rectangle "電源投入" as power
+rectangle "Stage 1: Boot ROM\nROSC でクロック生成\nBOOTSEL チェック\n外付けフラッシュ先頭256B を\nSRAM末尾へコピー\nチェックサム検証" as stage1
+rectangle "USBマスストレージモード\n(.uf2 書き込み待ち)" as usb_mode
+rectangle "Stage 2: boot2 (256B)\nXIP制御レジスタ設定\nフラッシュをQSPIモード化\nベクタテーブル[0]を SPに、\n[1] (Reset_Handler) にジャンプ" as stage2
+rectangle "Stage 3: crt0 / Reset_Handler\n.dataセクションをコピー\n.bssセクションをゼロクリア\nmain()を呼び出し" as stage3
+rectangle "Application\n(main関数)" as app
+
+power --> stage1
+stage1 --> usb_mode : "BOOTSEL押下\nまたは検証失敗"
+stage1 --> stage2 : "通常起動"
+stage2 --> stage3
+stage3 --> app
+
+@enduml

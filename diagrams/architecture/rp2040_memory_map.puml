@@ -1,0 +1,23 @@
+@startuml rp2040_memory_map
+
+skinparam backgroundColor #FEFCF8
+skinparam shadowing false
+
+title RP2040 メモリマップ概要
+
+rectangle "Cortex-M0+ Internal\n0xE0000000〜\nNVIC, SysTick, SCB" as cortex_internal
+rectangle "SIO\n0xD0000000〜\nGPIO直接制御, FIFO,\nSpinlock, 整数除算器" as sio_region
+rectangle "AHB-Lite Peripherals\n0x50000000〜\nDMA, USB, PIO0, PIO1, XIP制御" as ahb_region
+rectangle "APB Peripherals\n0x40000000〜\nUART, I2C, SPI, ADC,\nTIMER, WATCHDOG, etc." as apb_region
+rectangle "SRAM (264KB)\n0x20000000〜0x20041FFF\nSRAM0〜3 (各64KB)\nSRAM4 (Core0 stripe, 4KB)\nSRAM5 (Core1 stripe, 4KB)" as sram_region
+rectangle "XIP (External Flash)\n0x10000000〜0x1FFFFFFF\n外付けQSPIフラッシュ\nboot2初期化後にメモリ的に読める" as xip_region
+rectangle "Boot ROM (16KB)\n0x00000000〜0x00003FFF\n電源投入時に最初に実行\n(書換不可)\nboot2をロード" as rom_region
+
+cortex_internal -[hidden]down- sio_region
+sio_region -[hidden]down- ahb_region
+ahb_region -[hidden]down- apb_region
+apb_region -[hidden]down- sram_region
+sram_region -[hidden]down- xip_region
+xip_region -[hidden]down- rom_region
+
+@enduml

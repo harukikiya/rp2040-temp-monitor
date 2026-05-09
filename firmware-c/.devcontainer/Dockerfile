@@ -26,6 +26,8 @@ RUN apt-get update && apt-get install -y \
     gdb-multiarch \
     openocd \
     libxml2 \
+    doxygen \
+    graphviz \
     && rm -rf /var/lib/apt/lists/*
 
 # ARM GNU Toolchain (Arm社公式バイナリ、aarch64用)

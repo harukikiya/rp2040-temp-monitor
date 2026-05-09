@@ -1,4 +1,4 @@
-.PHONY: check clean
+.PHONY: check clean docs docs-clean
 
 check:
 	@echo "=== Compiler check ==="
@@ -32,6 +32,17 @@ check:
 	@echo "Cross compile: OK"
 	@arm-none-eabi-objdump -d /tmp/test.o | head -10
 	@rm -f /tmp/test.c /tmp/test.o
+
+# DoxygenでAPIドキュメントを生成
+docs:
+	mkdir -p docs/api
+	doxygen Doxyfile
+	@echo ""
+	@echo "API documentation generated at docs/api/html/index.html"
+
+# Doxygenが生成したファイルをクリーン
+docs-clean:
+	rm -rf docs/api
 
 clean:
 	rm -f /tmp/test.c /tmp/test.o

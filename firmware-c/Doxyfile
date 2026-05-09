@@ -1,0 +1,43 @@
+# Doxygen 設定 (RP2040 温度モニタ C実装)
+
+# プロジェクト情報
+PROJECT_NAME           = "RP2040 Temperature Monitor (C)"
+PROJECT_BRIEF          = "RP2040 内蔵温度センサ温度モニタ - C実装"
+OUTPUT_DIRECTORY       = docs/api
+
+# 入力
+INPUT                  = src include
+RECURSIVE              = YES
+FILE_PATTERNS          = *.c *.h *.S
+
+# 出力フォーマット
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+HTML_OUTPUT            = html
+
+# C 専用設定
+OPTIMIZE_OUTPUT_FOR_C  = YES
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+EXTRACT_PRIVATE        = YES
+
+# ソースコード閲覧
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = NO
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+
+# 図表生成 (graphviz が必要)
+HAVE_DOT               = YES
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+INCLUDE_GRAPH          = YES
+INCLUDED_BY_GRAPH      = YES
+
+# 警告
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+
+# 日本語対応
+OUTPUT_LANGUAGE        = English
