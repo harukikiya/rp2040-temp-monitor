@@ -2,7 +2,7 @@
 name: バグ報告
 about: 動作不良、ビルドエラー、想定外の挙動
 title: '[BUG] '
-labels:'bug'
+labels: 'bug'
 ---
 
 ## 発生した事象
