@@ -129,8 +129,30 @@ pico_default_asm_setup
 // from there, and the boot_stage2 should just return normally.
 //
 // r3 holds SSI base, r0...2 used as temporaries. Other GPRs not used.
+
+/* ============================================================
+ * Stage 2 ブートエントリポイント
+ * ============================================================
+ * ブートROM(Stage 1) によって SRAM末尾(0x20041F00) にコピーされ、
+ * ここから実行が開始される。
+ *
+ * 以下の順序で外付けQSPIフラッシュをXIPモードで使用可能にする:
+ *   1. QSPI ピンの電気的特性設定 (PADS_QSPI)
+ *   2. SSI(SPI master)を一旦disableして設定変更可能に
+ *   3. ボーレート(SPI クロック分周比)とサンプル遅延の設定
+ *   4. SR-write でフラッシュチップの QE bit をセット (Quad モード有効化)
+ *   5. SSI を Quad モードに切り替え、Quad Read コマンドを送信
+ *   6. XIP コントローラに「Quad Read で読む」設定を入れる
+ *   7. ベクタテーブルへジャンプ
+ */
 regular_func _stage2_boot
     push {lr}
+
+/* --- 1. QSPI ピンの電気的特性設定 ---
+     * 高速通信(133MHz相当のSCLK)に耐えられるよう PADS_QSPI を調整する:
+     *   - SCLK: 駆動電流を 8mA に上げ、スルーレート制限を解除して立ち上がりを高速化
+     *   - SD0〜SD3: Schmitt トリガを disable して入力遅延を削減
+     */
 
     // Set pad configuration:
     // - SCLK 8mA drive, no slew limiting
@@ -147,6 +169,12 @@ regular_func _stage2_boot
     str r0, [r3, #PADS_QSPI_GPIO_QSPI_SD2_OFFSET]
     str r0, [r3, #PADS_QSPI_GPIO_QSPI_SD3_OFFSET]
 
+/* --- 2-3. SSI の設定変更 ---
+     * 設定を変えるには SSI を一旦disable する必要がある。
+     * disable後にボーレート(SPI クロック分周比)とサンプル遅延を設定し、
+     * この後の SR-write や Quad Read 送信に備える。
+     * (この時点ではまだ標準 SPI モードで、Quad モードへの切替は後段で行う)
+     */
     ldr r3, =XIP_SSI_BASE
 
     // Disable SSI to allow further config
