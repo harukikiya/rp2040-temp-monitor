@@ -198,8 +198,29 @@ regular_func _stage2_boot
 
 // On QSPI parts we usually need a 01h SR-write command to enable QSPI mode
 // (i.e. turn WPn and HOLDn into IO2/IO3)
+/* ============================================================
+ * 4. フラッシュチップの Quad Enable (QE) bit をセット
+ * ============================================================
+ * W25Q080/W25Q16JV は工場出荷時に QE bit がセットされていない場合があり、
+ * その場合 4ビット転送(QSPI)を受け付けない。
+ * このブロックでは:
+ *   - 既に QE bit がセットされているか Status Register 2 で確認
+ *   - セットされていなければ、Write Enable コマンドの後に
+ *     Write Status Register コマンドで QE bit を 1 にする
+ *   - 書き込み完了をポーリングで待つ
+ *
+ * QE bit セット処理は時間がかかる(数ms)上、不要な場合もあるので
+ * 既にセット済みかをまず確認している。
+ *
+ * この処理中は SSI を一時的に「8ビット標準SPI TX/RX モード」で動かす。
+ * Quad モードへの切替はこの処理が完了した後に行う。
+ */
 #ifdef PROGRAM_STATUS_REG
 program_sregs:
+    /* SSI を「8ビット標準SPI 送受信モード」に設定して enable する。
+     * フラッシュチップとのコマンド送受信を行うため。
+     * Quad モードへの切替はこの段階の最後に行う。
+     */
 #define CTRL0_SPI_TXRX \
     (7 << SSI_CTRLR0_DFS_32_LSB) | /* 8 bits per data frame */ \
     (SSI_CTRLR0_TMOD_VALUE_TX_AND_RX << SSI_CTRLR0_TMOD_LSB)
@@ -211,6 +232,10 @@ program_sregs:
     movs r1, #1
     str r1, [r3, #SSI_SSIENR_OFFSET]
 
+    /* --- 4-1. 既に QE bit がセット済みかを確認 ---
+     * Status Register 2 (CMD_READ_STATUS2 = 0x35) を読み、
+     * 期待値 (SREG_DATA) と一致したら QE bit セット処理をスキップ。
+     */
     // Check whether SR needs updating
     movs r0, #CMD_READ_STATUS2
     bl read_flash_sreg
@@ -218,6 +243,11 @@ program_sregs:
     cmp r0, r2
     beq skip_sreg_programming
 
+    /* --- 4-2. Write Enable コマンド送信 (0x06) ---
+     * フラッシュへの書き込み(QE bit セット含む)を許可する。
+     * このコマンドは応答データがないため、TXのみで完結。
+     * RXバッファに入る空データは後で破棄する。
+     */
     // Send write enable command
     movs r1, #CMD_WRITE_ENABLE
     str r1, [r3, #SSI_DR0_OFFSET]
@@ -226,6 +256,12 @@ program_sregs:
     bl wait_ssi_ready
     ldr r1, [r3, #SSI_DR0_OFFSET]
 
+    /* --- 4-3. Write Status Register コマンドで QE bit をセット ---
+     * 0x01 (CMD_WRITE_STATUS) コマンドの後に 2 バイトのデータを送る:
+     *   - 1バイト目: Status Register 1 の値 (0x00、特に変更なし)
+     *   - 2バイト目: Status Register 2 の値 (QE bit を含む期待値)
+     * チップは内部で書き込み処理を開始する(数ms程度かかる)。
+     */
     // Send status write command followed by data bytes
     movs r1, #CMD_WRITE_STATUS
     str r1, [r3, #SSI_DR0_OFFSET]
@@ -238,6 +274,11 @@ program_sregs:
     ldr r1, [r3, #SSI_DR0_OFFSET]
     ldr r1, [r3, #SSI_DR0_OFFSET]
 
+    /* --- 4-4. 書き込み完了をポーリングで待つ ---
+     * Status Register 1 の bit 0 (WIP = Write In Progress) を読み、
+     * 0 になるまでループ。0 = 書き込み完了。
+     * "1:" はローカルラベル(直前の命令位置)、"1b" は「直前の 1: に戻る」の意味。
+     */
     // Poll status register for write completion
 1:
     movs r0, #CMD_READ_STATUS
@@ -246,6 +287,9 @@ program_sregs:
     tst r0, r1
     bne 1b
 
+    /* --- 4-5. (スキップ時もここに来る) ---
+     * 次の段階(Quadモードでの XIP 設定)のために SSI を一旦 disable する。
+     */
 skip_sreg_programming:
 
     // Disable SSI again so that it can be reconfigured
