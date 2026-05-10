@@ -1,5 +1,34 @@
 /**
+ * @file boot2_w25q080.S
+ * @brief Boot Stage 2: 外付けQSPIフラッシュをXIPモードで使用可能にする
  * 
+ * @details
+ * RP2040のブート手順に第2段階（Stage 2）に該当する256バイトのコード。
+ * Satege 1のブートROMにより、外付けフラッシュ先頭256バイトがSRAM末尾（`0x20041F00`）に
+ * コピーされたあと、ここにジャンプしてくる。
+ * 
+ * 主な仕事：
+ *  - SSI（RP2040の SPI master）の初期化と Quad モード設定
+ *  - 外付けフラッシュチップ（W25Q16JV）のステータスレジスタを書き換えて
+ *    Quad Enable（QE）ビットをセット
+ *  - XIP コントローラに「Quad Read コマンドで読み出す」設定を入れる
+ *  - Continuous Read モードを開始（以降コマンドbyte送信を省略可能）
+ *  - フラッシュ上のベクタテーブルへジャンプ（リセットハンドラへ）
+ * 
+ * 256バイト固定の制約があり、末尾4バイトはチェックサム領域。
+ * 実コードは252バイト以内に収める必要がある。
+ * チェックサムはビルド後にツールで計算して埋め込む。
+ * 
+ * @note 本ファイルはRaspberry Pi公式 pico-sdk の boot2_w25q080.S を本プロジェクトに取り込んだもの。
+ *       著作権表示は維持し、学習目的で日本語コメントを追加している。
+ *       元の英語コメントとアセンブリコード自体は改変していない。
+ * 
+ * @see RP2040 datasheet Section 2.8 Boot Sequence
+ * @see RP2040 datasheet Section 4.10 SSI
+ * @see ../../../diagrams/archtecture/rp2040_boot_sequence.puml
+ * 
+ * @copyright Copyright (c) 2019-2021 Raspberry Pi (Trading) Ltd.
+ * @copyright SPDX-License-Identifier: BSD-3-Clause
  */
 // ----------------------------------------------------------------------------
 // Second stage boot code
