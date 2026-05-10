@@ -1,5 +1,34 @@
 /**
+ * @file boot2_w25q080.S
+ * @brief Boot Stage 2: 外付けQSPIフラッシュをXIPモードで使用可能にする
  * 
+ * @details
+ * RP2040のブート手順の第2段階（Stage 2）に該当する256バイトのコード。
+ * Stage 1のブートROMにより、外付けフラッシュ先頭256バイトがSRAM末尾（`0x20041F00`）に
+ * コピーされたあと、ここにジャンプしてくる。
+ * 
+ * 主な仕事：
+ *  - SSI（RP2040の SPI master）の初期化と Quad モード設定
+ *  - 外付けフラッシュチップ（W25Q16JV）のステータスレジスタを書き換えて
+ *    Quad Enable（QE）ビットをセット
+ *  - XIP コントローラに「Quad Read コマンドで読み出す」設定を入れる
+ *  - Continuous Read モードを開始（以降コマンドbyte送信を省略可能）
+ *  - フラッシュ上のベクタテーブルへジャンプ（リセットハンドラへ）
+ * 
+ * 256バイト固定の制約があり、末尾4バイトはチェックサム領域。
+ * 実コードは252バイト以内に収める必要がある。
+ * チェックサムはビルド後にツールで計算して埋め込む。
+ * 
+ * @note 本ファイルはRaspberry Pi公式 pico-sdk の boot2_w25q080.S を本プロジェクトに取り込んだもの。
+ *       著作権表示は維持し、学習目的で日本語コメントを追加している。
+ *       元の英語コメントとアセンブリコード自体は改変していない。
+ * 
+ * @see RP2040 datasheet Section 2.8 Boot Sequence
+ * @see RP2040 datasheet Section 4.10 SSI
+ * @see ../../../diagrams/architecture/rp2040_boot_sequence.puml
+ * 
+ * @copyright Copyright (c) 2019-2021 Raspberry Pi (Trading) Ltd.
+ * @copyright SPDX-License-Identifier: BSD-3-Clause
  */
 // ----------------------------------------------------------------------------
 // Second stage boot code
@@ -100,8 +129,30 @@ pico_default_asm_setup
 // from there, and the boot_stage2 should just return normally.
 //
 // r3 holds SSI base, r0...2 used as temporaries. Other GPRs not used.
+
+/* ============================================================
+ * Stage 2 ブートエントリポイント
+ * ============================================================
+ * ブートROM(Stage 1) によって SRAM末尾(0x20041F00) にコピーされ、
+ * ここから実行が開始される。
+ *
+ * 以下の順序で外付けQSPIフラッシュをXIPモードで使用可能にする:
+ *   1. QSPI ピンの電気的特性設定 (PADS_QSPI)
+ *   2. SSI(SPI master)を一旦disableして設定変更可能に
+ *   3. ボーレート(SPI クロック分周比)とサンプル遅延の設定
+ *   4. SR-write でフラッシュチップの QE bit をセット (Quad モード有効化)
+ *   5. SSI を Quad モードに切り替え、Quad Read コマンドを送信
+ *   6. XIP コントローラに「Quad Read で読む」設定を入れる
+ *   7. ベクタテーブルへジャンプ
+ */
 regular_func _stage2_boot
     push {lr}
+
+/* --- 1. QSPI ピンの電気的特性設定 ---
+     * 高速通信(133MHz相当のSCLK)に耐えられるよう PADS_QSPI を調整する:
+     *   - SCLK: 駆動電流を 8mA に上げ、スルーレート制限を解除して立ち上がりを高速化
+     *   - SD0〜SD3: Schmitt トリガを disable して入力遅延を削減
+     */
 
     // Set pad configuration:
     // - SCLK 8mA drive, no slew limiting
@@ -118,6 +169,12 @@ regular_func _stage2_boot
     str r0, [r3, #PADS_QSPI_GPIO_QSPI_SD2_OFFSET]
     str r0, [r3, #PADS_QSPI_GPIO_QSPI_SD3_OFFSET]
 
+/* --- 2-3. SSI の設定変更 ---
+     * 設定を変えるには SSI を一旦disable する必要がある。
+     * disable後にボーレート(SPI クロック分周比)とサンプル遅延を設定し、
+     * この後の SR-write や Quad Read 送信に備える。
+     * (この時点ではまだ標準 SPI モードで、Quad モードへの切替は後段で行う)
+     */
     ldr r3, =XIP_SSI_BASE
 
     // Disable SSI to allow further config
@@ -141,8 +198,29 @@ regular_func _stage2_boot
 
 // On QSPI parts we usually need a 01h SR-write command to enable QSPI mode
 // (i.e. turn WPn and HOLDn into IO2/IO3)
+/* ============================================================
+ * 4. フラッシュチップの Quad Enable (QE) bit をセット
+ * ============================================================
+ * W25Q080/W25Q16JV は工場出荷時に QE bit がセットされていない場合があり、
+ * その場合 4ビット転送(QSPI)を受け付けない。
+ * このブロックでは:
+ *   - 既に QE bit がセットされているか Status Register 2 で確認
+ *   - セットされていなければ、Write Enable コマンドの後に
+ *     Write Status Register コマンドで QE bit を 1 にする
+ *   - 書き込み完了をポーリングで待つ
+ *
+ * QE bit セット処理は時間がかかる(数ms)上、不要な場合もあるので
+ * 既にセット済みかをまず確認している。
+ *
+ * この処理中は SSI を一時的に「8ビット標準SPI TX/RX モード」で動かす。
+ * Quad モードへの切替はこの処理が完了した後に行う。
+ */
 #ifdef PROGRAM_STATUS_REG
 program_sregs:
+    /* SSI を「8ビット標準SPI 送受信モード」に設定して enable する。
+     * フラッシュチップとのコマンド送受信を行うため。
+     * Quad モードへの切替はこの段階の最後に行う。
+     */
 #define CTRL0_SPI_TXRX \
     (7 << SSI_CTRLR0_DFS_32_LSB) | /* 8 bits per data frame */ \
     (SSI_CTRLR0_TMOD_VALUE_TX_AND_RX << SSI_CTRLR0_TMOD_LSB)
@@ -154,6 +232,10 @@ program_sregs:
     movs r1, #1
     str r1, [r3, #SSI_SSIENR_OFFSET]
 
+    /* --- 4-1. 既に QE bit がセット済みかを確認 ---
+     * Status Register 2 (CMD_READ_STATUS2 = 0x35) を読み、
+     * 期待値 (SREG_DATA) と一致したら QE bit セット処理をスキップ。
+     */
     // Check whether SR needs updating
     movs r0, #CMD_READ_STATUS2
     bl read_flash_sreg
@@ -161,6 +243,11 @@ program_sregs:
     cmp r0, r2
     beq skip_sreg_programming
 
+    /* --- 4-2. Write Enable コマンド送信 (0x06) ---
+     * フラッシュへの書き込み(QE bit セット含む)を許可する。
+     * このコマンドは応答データがないため、TXのみで完結。
+     * RXバッファに入る空データは後で破棄する。
+     */
     // Send write enable command
     movs r1, #CMD_WRITE_ENABLE
     str r1, [r3, #SSI_DR0_OFFSET]
@@ -169,6 +256,12 @@ program_sregs:
     bl wait_ssi_ready
     ldr r1, [r3, #SSI_DR0_OFFSET]
 
+    /* --- 4-3. Write Status Register コマンドで QE bit をセット ---
+     * 0x01 (CMD_WRITE_STATUS) コマンドの後に 2 バイトのデータを送る:
+     *   - 1バイト目: Status Register 1 の値 (0x00、特に変更なし)
+     *   - 2バイト目: Status Register 2 の値 (QE bit を含む期待値)
+     * チップは内部で書き込み処理を開始する(数ms程度かかる)。
+     */
     // Send status write command followed by data bytes
     movs r1, #CMD_WRITE_STATUS
     str r1, [r3, #SSI_DR0_OFFSET]
@@ -181,6 +274,11 @@ program_sregs:
     ldr r1, [r3, #SSI_DR0_OFFSET]
     ldr r1, [r3, #SSI_DR0_OFFSET]
 
+    /* --- 4-4. 書き込み完了をポーリングで待つ ---
+     * Status Register 1 の bit 0 (WIP = Write In Progress) を読み、
+     * 0 になるまでループ。0 = 書き込み完了。
+     * "1:" はローカルラベル(直前の命令位置)、"1b" は「直前の 1: に戻る」の意味。
+     */
     // Poll status register for write completion
 1:
     movs r0, #CMD_READ_STATUS
@@ -189,6 +287,9 @@ program_sregs:
     tst r0, r1
     bne 1b
 
+    /* --- 4-5. (スキップ時もここに来る) ---
+     * 次の段階(Quadモードでの XIP 設定)のために SSI を一旦 disable する。
+     */
 skip_sreg_programming:
 
     // Disable SSI again so that it can be reconfigured
@@ -196,6 +297,17 @@ skip_sreg_programming:
     str r1, [r3, #SSI_SSIENR_OFFSET]
 #endif
 
+/* ============================================================
+ * 5. Quad モードへの切替と Continuous Read モードの開始
+ * ============================================================
+ * フラッシュチップは現状「毎回 8bit のコマンドバイトを期待する」状態。
+ * 毎回コマンドバイトを送るのは無駄なので、ダミーの Fast Read Quad I/O
+ * コマンドを 1 回だけ送って、特殊な「モードビット」を伝える。
+ * このモードビットによりフラッシュは「次回以降コマンドバイトは不要」
+ * の状態 (Continuous Read モード) に入る。
+ *
+ * このダミー読み出しの結果データ自体は捨てる。重要なのはモードビット。
+ */
 // Currently the flash expects an 8 bit serial command prefix on every
 // transfer, which is a waste of cycles. Perform a dummy Fast Read Quad I/O
 // command, with mode bits set such that the flash will not expect a serial
@@ -203,6 +315,12 @@ skip_sreg_programming:
 // of the read, the important part is the mode bits.
 
 dummy_read:
+    /* --- 5-1. SSI を Quad I/O モードに切替 ---
+     * SSI_CTRLR0 レジスタを以下のように設定する:
+     *   - Quad I/O モード (4ビット転送)
+     *   - 32 bit データフレーム
+     *   - EEPROM_READ モード (INST/ADDR を送信、その後データを受信)
+     */
 #define CTRLR0_ENTER_XIP \
     (FRAME_FORMAT                          /* Quad I/O mode */                \
         << SSI_CTRLR0_SPI_FRF_LSB) |                                          \
@@ -216,6 +334,13 @@ dummy_read:
     movs r1, #0x0                    // NDF=0 (single 32b read)
     str r1, [r3, #SSI_CTRLR1_OFFSET]
 
+    /* --- 5-2. ダミー Quad Read 用の SPI_CTRLR0 設定 ---
+     * SPI_CTRLR0 レジスタは Quad モード時の詳細を制御する:
+     *   - ADDR_L: アドレスとモードビットの合計長
+     *   - WAIT_CYCLES: アドレス送信後のダミークロック数 (Hi-Z待ち)
+     *   - INST_L: 8bit命令 (このダミー読み出しでは命令を送る必要あり)
+     *   - TRANS_TYPE: 1C2A = 命令はSerial、アドレスはQuad I/O で送信
+     */
 #define SPI_CTRLR0_ENTER_XIP \
     (ADDR_L << SSI_SPI_CTRLR0_ADDR_L_LSB) |     /* Address + mode bits */ \
     (WAIT_CYCLES << SSI_SPI_CTRLR0_WAIT_CYCLES_LSB) | /* Hi-Z dummy clocks following address + mode */ \
@@ -228,6 +353,15 @@ dummy_read:
     ldr r0, =(XIP_SSI_BASE + SSI_SPI_CTRLR0_OFFSET)  // SPI_CTRL0 Register
     str r1, [r0]
 
+    /* --- 5-3. SSI 有効化、ダミー Quad Read コマンドを送信 ---
+     * CMD_READ (0xEB = Fast Read Quad I/O コマンド) と
+     * MODE_CONTINUOUS_READ (M[7:4]=1010、Continuous Read 開始信号) を
+     * 連続して送信する。
+     *
+     * MODE_CONTINUOUS_READ の上位4ビット M[7:4] が 1010 (0xA) のとき、
+     * フラッシュは「次回以降コマンドバイト不要」の状態に入る。
+     * アドレス自体は何でもいいので 0 を入れている。
+     */
     movs r1, #1                      // Re-enable SSI
     str r1, [r3, #SSI_SSIENR_OFFSET]
 
@@ -250,6 +384,19 @@ dummy_read:
 // the TX FIFO:
 //      INST_L_0_BITS   {ADDR[23:0],XIP_CMD[7:0]}       Load "mode bits" into XIP_CMD
 //      Anything else   {XIP_CMD[7:0],ADDR[23:0]}       Load SPI command into XIP_CMD
+/* --- 5-4. XIP コントローラ用の最終的な SSI 設定 ---
+ * フラッシュは Continuous Read モードに入ったので、以降は
+ * 「アドレス + モードビット」だけ送ればデータが返ってくる状態。
+ *
+ * SSI を一旦 disable してから SPI_CTRLR0 を以下のように再設定する:
+ *   - INST_L = NONE: 命令バイトを送らない (これが Continuous Read の核心)
+ *   - XIP_CMD: アドレスの後にモードビットとして MODE_CONTINUOUS_READ を送る
+ *   - TRANS_TYPE = 2C2A: 命令もアドレスも Quad I/O モード
+ *
+ * この設定により、CPU が 0x10000000 以降のアドレスを読むだけで、
+ * XIP コントローラが自動的にフラッシュへ Quad I/O 転送を発行し、
+ * データを返してくれるようになる。
+ */
 configure_ssi:
 #define SPI_CTRLR0_XIP \
     (MODE_CONTINUOUS_READ                      /* Mode bits to keep flash in continuous read mode */ \
@@ -271,6 +418,27 @@ configure_ssi:
 // Bus accesses to the XIP window will now be transparently serviced by the
 // external flash on cache miss. We are ready to run code from flash.
 
+/* ============================================================
+ * 6. ヘルパールーチンの取り込み (boot2 の終了処理を含む)
+ * ============================================================
+ * boot2 で使うサブルーチン群を別ファイルから取り込む。
+ *
+ *   - exit_from_boot2.S:
+ *       boot2 の最後の処理。フラッシュ上のベクタテーブルから
+ *       初期スタックポインタとリセットハンドラのアドレスを取得し、
+ *       リセットハンドラへジャンプする。これで boot2 の役目は完了し、
+ *       crt0 (Reset_Handler) に処理が移る。
+ *
+ *   - wait_ssi_ready.S:
+ *       SSI の TX FIFO が空かつ通信完了状態になるのを待つ
+ *       サブルーチン。前のセクションで "bl wait_ssi_ready" として
+ *       呼び出していた本体。
+ *
+ *   - read_flash_sreg.S (PROGRAM_STATUS_REG 定義時のみ):
+ *       フラッシュのステータスレジスタを読み出すサブルーチン。
+ *       QE bit 確認や WIP ポーリングで使った
+ *       "bl read_flash_sreg" の本体。
+ */
 // Pull in standard exit routine
 #include "boot2_helpers/exit_from_boot2.S"
 
@@ -280,8 +448,21 @@ configure_ssi:
 #include "boot2_helpers/read_flash_sreg.S"
 #endif
 
+/* --- リテラルプールの配置 ---
+ * `.ltorg` ディレクティブは、ARM アセンブラに対して
+ * 「ここにリテラルプール(定数の置き場所)を配置せよ」と指示する。
+ *
+ * Cortex-M0+ の `ldr r1, =...` 疑似命令は、PC相対アドレッシングで
+ * 近くにあるリテラルプールから値をロードする命令に展開される。
+ * リテラルプールはコードと同じセグメントに配置する必要があるため、
+ * boot2 のコード末尾に明示的に配置する。
+ *
+ * `.global literals` で外部からアクセス可能なシンボルとして
+ * `literals` を宣言している (リンク時の参照用)。
+ */
 .global literals
 literals:
 .ltorg
 
+/* アセンブラに対するファイル終了の宣言 */
 .end
