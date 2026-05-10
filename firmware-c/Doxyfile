@@ -41,3 +41,5 @@ WARN_IF_DOC_ERROR      = YES
 
 # 日本語対応
 OUTPUT_LANGUAGE        = English
+
+EXTENSION_MAPPING      = S=C
