@@ -418,6 +418,27 @@ configure_ssi:
 // Bus accesses to the XIP window will now be transparently serviced by the
 // external flash on cache miss. We are ready to run code from flash.
 
+/* ============================================================
+ * 6. ヘルパールーチンの取り込み (boot2 の終了処理を含む)
+ * ============================================================
+ * boot2 で使うサブルーチン群を別ファイルから取り込む。
+ *
+ *   - exit_from_boot2.S:
+ *       boot2 の最後の処理。フラッシュ上のベクタテーブルから
+ *       初期スタックポインタとリセットハンドラのアドレスを取得し、
+ *       リセットハンドラへジャンプする。これで boot2 の役目は完了し、
+ *       crt0 (Reset_Handler) に処理が移る。
+ *
+ *   - wait_ssi_ready.S:
+ *       SSI の TX FIFO が空かつ通信完了状態になるのを待つ
+ *       サブルーチン。前のセクションで "bl wait_ssi_ready" として
+ *       呼び出していた本体。
+ *
+ *   - read_flash_sreg.S (PROGRAM_STATUS_REG 定義時のみ):
+ *       フラッシュのステータスレジスタを読み出すサブルーチン。
+ *       QE bit 確認や WIP ポーリングで使った
+ *       "bl read_flash_sreg" の本体。
+ */
 // Pull in standard exit routine
 #include "boot2_helpers/exit_from_boot2.S"
 
@@ -427,8 +448,21 @@ configure_ssi:
 #include "boot2_helpers/read_flash_sreg.S"
 #endif
 
+/* --- リテラルプールの配置 ---
+ * `.ltorg` ディレクティブは、ARM アセンブラに対して
+ * 「ここにリテラルプール(定数の置き場所)を配置せよ」と指示する。
+ *
+ * Cortex-M0+ の `ldr r1, =...` 疑似命令は、PC相対アドレッシングで
+ * 近くにあるリテラルプールから値をロードする命令に展開される。
+ * リテラルプールはコードと同じセグメントに配置する必要があるため、
+ * boot2 のコード末尾に明示的に配置する。
+ *
+ * `.global literals` で外部からアクセス可能なシンボルとして
+ * `literals` を宣言している (リンク時の参照用)。
+ */
 .global literals
 literals:
 .ltorg
 
+/* アセンブラに対するファイル終了の宣言 */
 .end
