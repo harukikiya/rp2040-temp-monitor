@@ -3,8 +3,8 @@
  * @brief Boot Stage 2: 外付けQSPIフラッシュをXIPモードで使用可能にする
  * 
  * @details
- * RP2040のブート手順に第2段階（Stage 2）に該当する256バイトのコード。
- * Satege 1のブートROMにより、外付けフラッシュ先頭256バイトがSRAM末尾（`0x20041F00`）に
+ * RP2040のブート手順の第2段階（Stage 2）に該当する256バイトのコード。
+ * Stage 1のブートROMにより、外付けフラッシュ先頭256バイトがSRAM末尾（`0x20041F00`）に
  * コピーされたあと、ここにジャンプしてくる。
  * 
  * 主な仕事：
@@ -25,7 +25,7 @@
  * 
  * @see RP2040 datasheet Section 2.8 Boot Sequence
  * @see RP2040 datasheet Section 4.10 SSI
- * @see ../../../diagrams/archtecture/rp2040_boot_sequence.puml
+ * @see ../../../diagrams/architecture/rp2040_boot_sequence.puml
  * 
  * @copyright Copyright (c) 2019-2021 Raspberry Pi (Trading) Ltd.
  * @copyright SPDX-License-Identifier: BSD-3-Clause
