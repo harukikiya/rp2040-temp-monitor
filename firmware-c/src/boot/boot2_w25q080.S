@@ -297,6 +297,17 @@ skip_sreg_programming:
     str r1, [r3, #SSI_SSIENR_OFFSET]
 #endif
 
+/* ============================================================
+ * 5. Quad モードへの切替と Continuous Read モードの開始
+ * ============================================================
+ * フラッシュチップは現状「毎回 8bit のコマンドバイトを期待する」状態。
+ * 毎回コマンドバイトを送るのは無駄なので、ダミーの Fast Read Quad I/O
+ * コマンドを 1 回だけ送って、特殊な「モードビット」を伝える。
+ * このモードビットによりフラッシュは「次回以降コマンドバイトは不要」
+ * の状態 (Continuous Read モード) に入る。
+ *
+ * このダミー読み出しの結果データ自体は捨てる。重要なのはモードビット。
+ */
 // Currently the flash expects an 8 bit serial command prefix on every
 // transfer, which is a waste of cycles. Perform a dummy Fast Read Quad I/O
 // command, with mode bits set such that the flash will not expect a serial
@@ -304,6 +315,12 @@ skip_sreg_programming:
 // of the read, the important part is the mode bits.
 
 dummy_read:
+    /* --- 5-1. SSI を Quad I/O モードに切替 ---
+     * SSI_CTRLR0 レジスタを以下のように設定する:
+     *   - Quad I/O モード (4ビット転送)
+     *   - 32 bit データフレーム
+     *   - EEPROM_READ モード (INST/ADDR を送信、その後データを受信)
+     */
 #define CTRLR0_ENTER_XIP \
     (FRAME_FORMAT                          /* Quad I/O mode */                \
         << SSI_CTRLR0_SPI_FRF_LSB) |                                          \
@@ -317,6 +334,13 @@ dummy_read:
     movs r1, #0x0                    // NDF=0 (single 32b read)
     str r1, [r3, #SSI_CTRLR1_OFFSET]
 
+    /* --- 5-2. ダミー Quad Read 用の SPI_CTRLR0 設定 ---
+     * SPI_CTRLR0 レジスタは Quad モード時の詳細を制御する:
+     *   - ADDR_L: アドレスとモードビットの合計長
+     *   - WAIT_CYCLES: アドレス送信後のダミークロック数 (Hi-Z待ち)
+     *   - INST_L: 8bit命令 (このダミー読み出しでは命令を送る必要あり)
+     *   - TRANS_TYPE: 1C2A = 命令はSerial、アドレスはQuad I/O で送信
+     */
 #define SPI_CTRLR0_ENTER_XIP \
     (ADDR_L << SSI_SPI_CTRLR0_ADDR_L_LSB) |     /* Address + mode bits */ \
     (WAIT_CYCLES << SSI_SPI_CTRLR0_WAIT_CYCLES_LSB) | /* Hi-Z dummy clocks following address + mode */ \
@@ -329,6 +353,15 @@ dummy_read:
     ldr r0, =(XIP_SSI_BASE + SSI_SPI_CTRLR0_OFFSET)  // SPI_CTRL0 Register
     str r1, [r0]
 
+    /* --- 5-3. SSI 有効化、ダミー Quad Read コマンドを送信 ---
+     * CMD_READ (0xEB = Fast Read Quad I/O コマンド) と
+     * MODE_CONTINUOUS_READ (M[7:4]=1010、Continuous Read 開始信号) を
+     * 連続して送信する。
+     *
+     * MODE_CONTINUOUS_READ の上位4ビット M[7:4] が 1010 (0xA) のとき、
+     * フラッシュは「次回以降コマンドバイト不要」の状態に入る。
+     * アドレス自体は何でもいいので 0 を入れている。
+     */
     movs r1, #1                      // Re-enable SSI
     str r1, [r3, #SSI_SSIENR_OFFSET]
 
@@ -351,6 +384,19 @@ dummy_read:
 // the TX FIFO:
 //      INST_L_0_BITS   {ADDR[23:0],XIP_CMD[7:0]}       Load "mode bits" into XIP_CMD
 //      Anything else   {XIP_CMD[7:0],ADDR[23:0]}       Load SPI command into XIP_CMD
+/* --- 5-4. XIP コントローラ用の最終的な SSI 設定 ---
+ * フラッシュは Continuous Read モードに入ったので、以降は
+ * 「アドレス + モードビット」だけ送ればデータが返ってくる状態。
+ *
+ * SSI を一旦 disable してから SPI_CTRLR0 を以下のように再設定する:
+ *   - INST_L = NONE: 命令バイトを送らない (これが Continuous Read の核心)
+ *   - XIP_CMD: アドレスの後にモードビットとして MODE_CONTINUOUS_READ を送る
+ *   - TRANS_TYPE = 2C2A: 命令もアドレスも Quad I/O モード
+ *
+ * この設定により、CPU が 0x10000000 以降のアドレスを読むだけで、
+ * XIP コントローラが自動的にフラッシュへ Quad I/O 転送を発行し、
+ * データを返してくれるようになる。
+ */
 configure_ssi:
 #define SPI_CTRLR0_XIP \
     (MODE_CONTINUOUS_READ                      /* Mode bits to keep flash in continuous read mode */ \
