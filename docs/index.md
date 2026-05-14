@@ -1,4 +1,4 @@
-# R2040 Temparature Monitor
+# RP2040 Temperature Monitor
 
 RP2040の内蔵温度センサを使った学習用ファームウェアプロジェクト。
 DMA、I2C、リングバッファ、デュアルコア活用の動作を実機で観察することを目的とする。
