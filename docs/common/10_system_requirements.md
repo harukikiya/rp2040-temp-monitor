@@ -1,5 +1,9 @@
 # システム要件
 
+> **位置づけ**：本ドキュメントは ASPICE [SYS.2（System Requirements Analysis）](https://en.wikipedia.org/wiki/Automotive_SPICE) に該当する。
+> システムレベルで「システムが何をできるべきか」を、機能要件と性能要件として記述する。
+> 本プロジェクトでは SYS.3（System Architectural Design）は省略し、ハードウェア構成は前提条件として `00_overview.md` に記載する。
+
 ## 機能要件
 
 ````{sysreq} 内蔵温度センサの継続的な可視化
