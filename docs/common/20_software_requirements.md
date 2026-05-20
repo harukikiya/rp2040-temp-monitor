@@ -1,5 +1,9 @@
 # ソフトウェア要件
 
+> **位置づけ**：本ドキュメントは ASPICE [SWE.1（Software Requirements Analysis）](https://en.wikipedia.org/wiki/Automotive_SPICE) に該当する。
+> システム要件（`10_system_requirements.md`）を、ソフトウェアが満たすべき具体的な振る舞いとして分解した文書。
+> 各 SWR は、対応するシステム要件（SYS_NNN）へのトレースを持つ。
+
 本書では、システム要件から派生するソフトウェア要件を、レイヤごとに整理して記述する。
 各要件は属するレイヤを`layer`属性で示す。
 
