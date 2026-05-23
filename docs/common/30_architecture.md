@@ -1,5 +1,9 @@
 # アーキテクチャ要件
 
+> **位置づけ**：本ドキュメントは ASPICE [SWE.2.1（Software Architectural Design）](https://en.wikipedia.org/wiki/Automotive_SPICE) に該当する。
+> ソフトウェア要件（`20_software_requirements.md`）を実現するための内部構造（レイヤ構成、コア間連携、メモリマップ等）を定義する文書。
+> 段階2.5-1 で本格的な完成を予定。コンポーネントレベルの詳細は SWE.2.2 として `40_component_design.md`（段階2.5-2 で作成）に記載する。
+
 本プロジェクトのソフトウェアアーキテクチャに関する要件を記述する。
 レイヤ構成、各層の責務、テスト境界などを定義する。
 
