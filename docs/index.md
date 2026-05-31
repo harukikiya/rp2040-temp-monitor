@@ -23,3 +23,10 @@ common/99_traceability
 
 common/adr/index
 ```
+
+```{toctree}
+:maxdepth: 2
+:caption: 学習ノート
+
+common/learning/index
+```
