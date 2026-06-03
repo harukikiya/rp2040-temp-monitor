@@ -1,0 +1,13 @@
+@startsalt
+{
+    {#
+        <b>アドレス | <b>フラッシュ （0x10000000〜） | <b>SRAM （0x20000000〜）
+        低位 | boot2 （先頭256B） | .data 実体 （VMA）
+        .   | .vector_table | .bss
+        .   | .text | （ヒープ ↓）
+        .   | .rodata | .
+        .   | .data 初期値 （LMA） | .
+        高位 | （空き） | （スタック ↑ 末尾から）
+    }
+}
+@endsalt

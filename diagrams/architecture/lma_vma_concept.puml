@@ -1,0 +1,29 @@
+@startuml
+title LMA と VMA：crt0 によるデータ初期化
+
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam rectangle {
+    BackgroundColor<<flash>> #FFE9C7
+    BackgroundColor<<sram>> #D6EAF8
+    BackgroundColor #555555
+}
+
+rectangle "フラッシュ上の\n.data 初期値（LMA）\n[5, ...]" as data_lma <<flash>>
+rectangle "SRAM 上の\n.data 実体（VMA）\n[5, ...]" as data_vma <<sram>>
+rectangle "SRAM 上の\n.bss 領域\n[0, 0, ...]" as bss <<sram>>
+
+data_lma -right->> data_vma : (1) crt0 がコピー
+
+note bottom of data_vma
+    .data は「初期値はフラッシュ（LMA）、
+    実体は SRAM（VMA）」の二重生活。
+    crt0 が起動時にフラッシュから SRAM へコピーする。
+end note
+
+note bottom of bss
+    (2) .bss は初期値なし（全て 0）。
+    フラッシュに実体を持たず、
+    crt0 が SRAM 領域を 0 で埋める。
+end note
+
+@enduml
