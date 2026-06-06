@@ -1,0 +1,34 @@
+@startuml
+title リンカ処理と crt0 によるデータ初期化の連携
+
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam rectangle {
+  BackgroundColor<<script>> #E8DAEF
+  BackgroundColor<<linker>> #FCF3CF
+  BackgroundColor<<crt0>> #D5F5E3
+  BorderColor #555555
+}
+
+rectangle "リンカスクリプト (.ld)\n_sdata = .;\n_edata = .;\n_sidata = LOADADDR(.data);\n_sbss = .;\n_ebss = .;" as script <<script>>
+
+rectangle "リンカ\nセクションを配置し\nシンボルにアドレスを確定\n例:\n_sdata = 0x20000000\n_edata = 0x20000010\n_sidata = 0x10003000" as linker <<linker>>
+
+rectangle "crt0 (C コード)\nextern uint32_t _sdata;\n...\n&_sdata でアドレス取得\n.data をコピー\n.bss を 0 初期化\nその後 main() を呼ぶ" as crt0 <<crt0>>
+
+script -down-> linker : シンボル定義を渡す
+linker -down-> crt0 : 確定アドレスを\nシンボル経由で参照
+
+note right of linker
+  リンカがセクションを
+  配置して初めて
+  アドレスが決まる
+end note
+
+note right of crt0
+  ハードコードせず
+  シンボル経由でアドレスを
+  取得するため、リンカスクリプトの
+  変更に追従できる
+end note
+
+@enduml

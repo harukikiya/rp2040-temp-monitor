@@ -1,0 +1,33 @@
+@startuml
+title ガベージコレクション（--gc-sections）による未使用セクションの削除
+
+skinparam defaultFontName "Noto Sans CJK JP"
+skinparam rectangle {
+  BackgroundColor<<kept>> #D5F5E3
+  BackgroundColor<<removed>> #FADBD8
+  BackgroundColor<<protected>> #FCF3CF
+  BorderColor #555555
+}
+
+rectangle "コンパイル後\n(-ffunction-sections)" as before {
+  rectangle ".text.add\n(add 関数)" as add1 <<kept>>
+  rectangle ".text.multiply\n(multiply 関数)" as mul1 <<removed>>
+  rectangle ".vector_table\n(ベクタテーブル)" as vt1 <<protected>>
+}
+
+rectangle "最終バイナリ\n(--gc-sections 適用後)" as after {
+  rectangle ".text.add\n(main から参照される)" as add2 <<kept>>
+  rectangle ".vector_table\n(KEEP で保護)" as vt2 <<protected>>
+}
+
+add1 -down-> add2 : 参照あり\n→ 残す
+mul1 -down->X : 参照なし\n→ 削除
+vt1 -down-> vt2 : KEEP\n→ 残す
+
+legend bottom
+  |<#D5F5E3>  | 参照あり → 残る |
+  |<#FADBD8>  | 参照なし → 削除される |
+  |<#FCF3CF>  | KEEP で保護 → 残る |
+endlegend
+
+@enduml
