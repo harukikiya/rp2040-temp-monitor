@@ -58,10 +58,14 @@
 //                4-byte checksum. Therefore code size cannot exceed 252 bytes.
 // ----------------------------------------------------------------------------
 
-#include "pico/asm_helper.S"
-#include "hardware/regs/addressmap.h"
-#include "hardware/regs/ssi.h"
-#include "hardware/regs/pads_qspi.h"
+// #include "pico/asm_helper.S"
+// #include "hardware/regs/addressmap.h"
+// #include "hardware/regs/ssi.h"
+// #include "hardware/regs/pads_qspi.h"
+
+// no-SDK 方針：pico-sdk のヘッダ・マクロへの依存を排除し、
+// 自前のレジスタ定義ヘッダを使用する。
+#include "rp2040_boot_regs.h"
 
 // ----------------------------------------------------------------------------
 // Config section
@@ -118,9 +122,20 @@
 // Start of 2nd Stage Boot Code
 // ----------------------------------------------------------------------------
 
-pico_default_asm_setup
+// pico_default_asm_setup
 
-.section .text
+// pico_default_asm_setup マクロを展開したもの（no-SDK 化）。
+// Cortex-M0+ 向けの Thumb アセンブリであることをアセンブラに伝える。
+.syntax unified
+.cpu cortex-m0plus
+.thumb
+
+// .section .text
+
+// boot2 専用セクション。リンカスクリプトでフラッシュ先頭 256 バイトに配置するため、
+// .text とは別のセクション名にする。
+// "ax" = allocatable（メモリを占有） + executable（実行可能）属性。
+.section .boot2, "ax"
 
 // lr will be zero on entry if entered from the bootrom, and the boot_stage2 is expected
 // to continue into the binary via the vector table at 0x10000100.
@@ -145,7 +160,14 @@ pico_default_asm_setup
  *   6. XIP コントローラに「Quad Read で読む」設定を入れる
  *   7. ベクタテーブルへジャンプ
  */
-regular_func _stage2_boot
+// regular_func _stage2_boot
+
+// regular_func マクロを展開したもの（no-SDK 化）。
+// _stage2_boot をグローバルな関数シンボルとして定義する。
+.global _stage2_boot
+.type _stage2_boot, %function
+.thumb_func
+_stage2_boot:
     push {lr}
 
 /* --- 1. QSPI ピンの電気的特性設定 ---
