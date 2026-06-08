@@ -4,7 +4,11 @@
 BUILD_DIR := build
 
 # クロスコンパイル設定（Cortex-M0+ / Thumb / ベアメタル）
-ARM_CC		:= arm-none-eabi-gcc
+# コンパイラは clang を使用する（プロジェクト方針）。
+# clang は --target でクロスターゲットを指定する。
+# objcopy / objdump / size などのバイナリユーティリティは
+# Arm GNU Toolchain （arm-none-eabi-*）のものを使う。
+ARM_CC		:= clang --target=arm-none-eabi
 ARM_CFLAGS	:= -mcpu=cortex-m0plus -mthumb -nostdlib -ffreestanding
 ARM_INCLUDE	:= -I src/boot
 
