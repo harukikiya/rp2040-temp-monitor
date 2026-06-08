@@ -1,4 +1,16 @@
-.PHONY: check clean docs docs-clean
+.PHONY: check clean docs docs-clean boot2
+
+# ビルド成果物の出力先
+BUILD_DIR := build
+
+# クロスコンパイル設定（Cortex-M0+ / Thumb / ベアメタル）
+# コンパイラは clang を使用する（プロジェクト方針）。
+# clang は --target でクロスターゲットを指定する。
+# objcopy / objdump / size などのバイナリユーティリティは
+# Arm GNU Toolchain （arm-none-eabi-*）のものを使う。
+ARM_CC		:= clang --target=arm-none-eabi
+ARM_CFLAGS	:= -mcpu=cortex-m0plus -mthumb -nostdlib -ffreestanding
+ARM_INCLUDE	:= -I src/boot
 
 check:
 	@echo "=== Compiler check ==="
@@ -33,6 +45,21 @@ check:
 	@arm-none-eabi-objdump -d /tmp/test.o | head -10
 	@rm -f /tmp/test.c /tmp/test.o
 
+# boot2（Boot Stage 2）を no-SDK でアセンブルする
+# pico-sdk に依存せず、自前の rp2040_boot_regs.h と boot2_helpers/ のみで
+# アセンブルできることを確認する。
+# boot2 は 256 バイト固定（末尾 4 バイトはチェックサム）のため、
+# 実コードは 252 バイト以内に収める必要がある。アセンブル後にサイズを表示する。
+boot2:
+	@mkdir -p $(BUILD_DIR)
+	$(ARM_CC) $(ARM_CFLAGS) $(ARM_INCLUDE) \
+		-c src/boot/boot2_w25q080.S \
+		-o $(BUILD_DIR)/boot2.o
+	@echo ""
+	@echo "=== boot2 アセンブル成功 ==="
+	@arm-none-eabi-size $(BUILD_DIR)/boot2.o
+	@echo "(.text が 252 バイト以内であることを確認すること)"
+
 # DoxygenでAPIドキュメントを生成
 docs:
 	mkdir -p docs/api
@@ -46,3 +73,4 @@ docs-clean:
 
 clean:
 	rm -f /tmp/test.c /tmp/test.o
+	rm -rf $(BUILD_DIR)
