@@ -30,3 +30,10 @@ common/adr/index
 
 common/learning/index
 ```
+
+```{toctree}
+:maxdepth: 2
+:caption: 進捗・工数レポート
+
+common/progress/index
+```
