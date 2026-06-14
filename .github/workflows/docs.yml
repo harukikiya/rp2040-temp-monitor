@@ -15,6 +15,7 @@ on:
 # Pages デプロイに必要な権限
 permissions:
   contents: read
+  issues: read
   pages: write
   id-token: write
 
@@ -47,6 +48,13 @@ jobs:
 
       - name: Install Python dependencies
         run: uv sync
+
+      - name: Generate worklog report
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # 進捗レポート生成はドキュメント本体のビルドを止めない（ソフト依存）
+        continue-on-error: true
+        run: uv run python scripts/collect_worklog.py
 
       - name: Build documentation
         run: uv run sphinx-build -b html -W docs _build/html
