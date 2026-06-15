@@ -90,7 +90,7 @@ SECTIONS
 
     /* .text/.rodata の終端。.data の初期値はこの直後のフラッシュに置かれる。
      * __etext は CMSIS の名前で「end of text」の意味。
-     * 学習ノートの _sidata（.data 初期値の開始 = LMA）に相当する。 /
+     * 学習ノートの _sidata（.data 初期値の開始 = LMA）に相当する。 */
     __etext = .;
 
     /* --------------------------------------------------------
@@ -120,4 +120,40 @@ SECTIONS
      * 起動時に crt0 が __bss_start__〜__bss_end__ を 0 で埋める。
      * COMMON は初期化されていないグローバル変数の特殊な扱い（.bss の仲間）。
      * NOLOAD は「ロード時に内容を持たない」ことを明示する。
+     * 
+     * シンボル対応（CMSIS 名 / 学習ノートの名前）：
+     *      __bss_start__   / _sbss（.bss の開始）
+     *      __bss_end__     / _ebss（.bss の終了） */
+    .bss (NOLOAD) : {
+        . = ALIGN(4);
+        __bss_start__ = .;
+        *(.bss)
+        *(.bss*)
+        *(COMMON)
+        . = ALIGN(4);
+        __bss_end__ = .;
+    } > RAM
+
+    /* --------------------------------------------------------
+     * .stack：スタック領域
+     * --------------------------------------------------------
+     * Cortex-M のスタックは上位アドレスから下位へ伸びる。
+     * .bss の直後に __STACK_SIZE 分を確保し、その末尾（上位端）を
+     * __StackTop とする。ベクタテーブルの先頭エントリ（初期 SP）に
+     * __StackTop を入れる。
+     * 8 バイト境界に揃えるのは AAPCS（ARM の手続き呼び出し規約）の要件。
+     * 
+     * シンボル対応（CMSIS 名 / 学習ノートの名前）：
+     *      __StackTop      / _stack_top（スタックの最上位 = 初期 SP） */
+    .stack (NOLOAD) : {
+        . = ALIGN(8);
+        __StackBottom = .;
+        . = . + __STACK_SIZE;
+        . = ALIGN(8);
+        __StackTop = .;
+    } > RAM
+
+    /* SRAM 使用量が 264KB が超えていないかリンク時に検出するためのチェック。
+     * __StackTop が RAM の末尾を越えたらリンクエラーにする。 */
+    ASSERT(__StackTop <= (ORIGIN(RAM) + LENGTH(RAM)), "RAM overflow: スタックが SRAM をはみ出している")
 }
