@@ -135,3 +135,10 @@ make serve
 
 現在は各要件の`rationale`フィールドに簡潔に記述している。
 将来、より構造化した記録方式（`design_decision`フィールド追加またはADR文書）への移行を検討予定。
+
+## ライセンス
+
+本プロジェクトは BSD-3-Clause ライセンスの下で公開しています。詳細は [LICENSE](LICENSE) を参照してください。
+
+`firmware-c/src/boot/boot2_w25q080.S` は Raspberry Pi (Trading) Ltd. による
+BSD-3-Clause ライセンスのコードに基づいています（ファイル内の表記を参照）。
