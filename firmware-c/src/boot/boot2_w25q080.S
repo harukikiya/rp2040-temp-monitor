@@ -486,5 +486,13 @@ configure_ssi:
 literals:
 .ltorg
 
+/* --- 実行可能スタック警告の抑止 ---
+ * GNU as は .note.GNU-stack セクションがないオブジェクトを
+ * 「実行可能スタックを要求する」と見做し、リンカが警告を出す
+ * （missing .note.GNU-stack section implies executable stack）。
+ * ベアメタルでは無害だが、警告ゼロのビルドを保つため、
+ * スタックを非実行と明示する空の .note.GNU-stack セクションを置く。 */
+.section .note.GNU-stack, "", %progbits
+
 /* アセンブラに対するファイル終了の宣言 */
 .end
