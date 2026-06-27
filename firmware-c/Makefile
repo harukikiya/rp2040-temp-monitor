@@ -95,23 +95,34 @@ verify-linker: boot2
 # boot2 に CRC32 チェックサムを付加し、焼ける 256 バイトのブロブを生成する（段階2-C-3-5）
 # RP2040 の bootrom は先頭 252 バイトの CRC-32/MPEG-2 を末尾 4 バイトと照合する。
 # 不一致だと boot2 を実行せず USB ブートローダ（RPI-RP2）に落ちる。
-# boot2.o の .boot2 セクションを raw 抽出 → pad_checksum.py で CRC 付加する。
-# 注：boot2 が再配置（リロケーション）を持たない自己完結アセンブリである前提。
-# 	外部シンボル参照を入れた場合は単独リンク（ld）が必要になる。
+# 注意：boot2 は内部関数 read_flash_sreg を bl で呼ぶため再配置（R_ARM_THM_CALL）を含む。
+# 		未リンクの .o から objcopy すると bl が未解決のまま抽出され壊れる。
+# 		単独リンクで再配置を解決してから .boot2 を抽出する。
+BOOT2_ELF	:= $(BUILD_DIR)/boot2.elf
 BOOT2_RAW	:= $(BUILD_DIR)/boot2.raw.bin
 BOOT2_BIN	:= $(BUILD_DIR)/boot2_checksummed.bin
 
 boot2-checksum: boot2
 	@echo ""
-	@echo "=== [1] boot2 raw 抽出（.boot2 セクション） ==="
-	arm-none-eabi-objcopy -O binary -j .boot2 \
-		$(BUILD_DIR)/boot2.o $(BOOT2_RAW)
+	@echo "=== [1] boot2 単独リンク（.boot2 内部の bl 再配置を解決） ==="
+	arm-none-eabi-ld --section-start .boot2=0x10000000 -e _stage2_boot \
+		$(BUILD_DIR)/boot2.o -o $(BOOT2_ELF)
+	@echo ""
+	@echo "=== [2] 残存リロケーション確認（無いこと） ==="
+	@if arm-none-eabi-readelf -r $(BOOT2_ELF) | grep -q "There are no relocations"; then \
+		echo "OK：リロケーション無し"; \
+	else \
+		echo "NG：リロケーションが残存"; arm-none-eabi-readelf -r $(BOOT2_ELF); exit 1; \
+	fi
+	@echo ""
+	@echo "=== [3] boot2 raw 抽出（リンク済み .boot2 から） ==="
+	arm-none-eabi-objcopy -O binary -j .boot2 $(BOOT2_ELF) $(BOOT2_RAW)
 	@echo "raw boot2：$$(wc -c < $(BOOT2_RAW)) バイト（252 以内であること）"
 	@echo ""
-	@echo "=== [2] CRC32 付加（CRC-32/MPEG-2 → 256 バイト固定） ==="
+	@echo "=== [4] CRC32 付加（CRC-32/MPEG-2 → 256 バイト固定） ==="
 	python3 tools/pad_checksum.py $(BOOT2_RAW) $(BOOT2_BIN)
 	@echo ""
-	@echo "=== [3] 出力検証（サイズ・末尾 CRC 一致、不一致で nonzero） ==="
+	@echo "=== [5] 出力検証（サイズ・末尾 CRC 一致、不一致で nonzero） ==="
 	python3 tools/pad_checksum.py --check $(BOOT2_BIN)
 
 # DoxygenでAPIドキュメントを生成
