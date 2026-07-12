@@ -60,18 +60,21 @@ boot2:
 	@arm-none-eabi-size $(BUILD_DIR)/boot2.o
 	@echo "(.text が 252 バイト以内であることを確認すること)"
 
-# リンカスクリプト rp2040.ld の静的検証（段階2-C-3-4）
-# boot2 + 検証用プローブをリンクし、セクション配置・LMA/VMA・シンボルを確認する。
-# crt0 実装前のため動作検証は行わない（静的検証のみ）。
+# リンカスクリプト rp2040.ld + crt0（startup/main） の静的検証
+# （2-C-3-4 で新設、2-C-4 で実物化）。boot2 + crt0 + main をリンクし、
+# セクション配置・LMA/VMA 分離・シンボル・ベクタ表内容を確認する。
 verify-linker: boot2
 	@mkdir -p $(BUILD_DIR)
-	@echo "=== 検証用プローブのコンパイル ==="
+	@echo "=== crt0（startup）と main のコンパイル ==="
 	$(ARM_CC) $(ARM_CFLAGS) $(ARM_INCLUDE) \
-		-c verify/linker_probe.c \
-		-o $(BUILD_DIR)/linker_probe.o
+		-c src/startup/startup_rp2040.c \
+		-o $(BUILD_DIR)/startup_rp2040.o
+	$(ARM_CC) $(ARM_CFLAGS) $(ARM_INCLUDE) \
+		-c src/main.c \
+		-o $(BUILD_DIR)/main.o
 	@echo "=== リンク（rp2040.ld 適用） ==="
-	arm-none-eabi-ld -T src/linker/rp2040.ld \
-		$(BUILD_DIR)/boot2.o $(BUILD_DIR)/linker_probe.o \
+	arm-none-eabi-ld -z noexecstack -T src/linker/rp2040.ld \
+		$(BUILD_DIR)/boot2.o $(BUILD_DIR)/startup_rp2040.o $(BUILD_DIR)/main.o \
 		-o $(BUILD_DIR)/firmware.elf
 	@echo "リンク成功: $(BUILD_DIR)/firmware.elf"
 	@echo ""
@@ -81,12 +84,12 @@ verify-linker: boot2
 	@echo "=== [2] LMA/VMA 分離（.data の VMA=RAM, LMA=FLASH を確認） ==="
 	arm-none-eabi-objdump -h $(BUILD_DIR)/firmware.elf
 	@echo ""
-	@echo "=== [3] リンカ生成シンボル ==="
+	@echo "=== [3] シンボル（リンカ生成 + crt0） ==="
 	@arm-none-eabi-nm $(BUILD_DIR)/firmware.elf | grep -E \
 		"__etext|__data_start__|__data_end__|__bss_start__|__bss_end__|__StackTop|__StackBottom" \
 		|| echo "（一部シンボル未検出 - 確認が必要）"
 	@echo ""
-	@echo "=== [4] .vectors の配置内容 ==="
+	@echo "=== [4] .vectors の配置内容（[0]=__StackTop, [1]=Reset_Handler|1） ==="
 	arm-none-eabi-objdump -s -j .vectors $(BUILD_DIR)/firmware.elf
 	@echo ""
 	@echo "=== [5] メモリ使用量 ==="
