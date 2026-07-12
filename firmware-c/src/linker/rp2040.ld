@@ -92,6 +92,23 @@ SECTIONS
         *(.rodata*)
     } > FLASH
 
+    /* --------------------------------------------------------
+     * .ARM.extab / .ARM.exidx：C の巻き戻し（unwind）テーブル
+     * --------------------------------------------------------
+     * clang/gcc が生成する。ベアメタルの実行時には使わないが、放置すると
+     * orphan として .text 直後（__etext の位置）に置かれ、.data の LMA が
+     * その分ずれて __etext と食い違う。ここで明示配置して __etext の前に
+     * 確定させ、__etext = .data の LMA を保証する。 */
+    .ARM.extab : {
+        *(.ARM.extab* .gnu.linkonce.armextab.*)
+    } > FLASH
+
+    .ARM.exidx : {
+        __exidx_start = .;
+        *(.ARM.exidx* .gnu.linkonce.armexidx.*)
+        __exidx_end = .;
+    } > FLASH
+
     /* .text/.rodata の終端。.data の初期値はこの直後のフラッシュに置かれる。
      * __etext は CMSIS の名前で「end of text」の意味。
      * 学習ノートの _sidata（.data 初期値の開始 = LMA）に相当する。 */
