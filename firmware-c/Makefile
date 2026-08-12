@@ -92,7 +92,7 @@ verify-linker: boot2
 	@echo ""
 	@echo "=== [3] 必須シンボル（リンカ生成 + crt0。欠落で fail） ==="
 	@arm-none-eabi-nm $(BUILD_DIR)/firmware.elf > $(BUILD_DIR)/nm.txt
-	@fail=0; for sym in __etext __data_start__ data_end__ __bss_start__ __bss_end__ \
+	@fail=0; for sym in __etext __data_start__ __data_end__ __bss_start__ __bss_end__ \
 		__StackTop __StackBottom __VECTOR_TABLE Reset_Handler Default_Handler main; do \
 		if grep -qE " $$sym$$" $(BUILD_DIR)/nm.txt; then \
 			grep -E " $$sym$$" $(BUILD_DIR)/nm.txt; \
