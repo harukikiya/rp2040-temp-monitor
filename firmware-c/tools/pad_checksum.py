@@ -121,6 +121,38 @@ def check(blob: bytes) -> int:
     print(f"OK：256 バイト/ 末尾 CRC=0x{stored:08X} 一致")
     return 0
 
+def patch(path: str) -> int:
+    """最終イメージ先頭 256 バイトの CRC 欄を正しい値で埋める（インプレース）。
+
+    フルリンク済みファームウェアの .bin は、先頭 256 バイトが boot2 だが末尾 4 バイトの
+    CRC 欄が 0 のままである。その 4 バイトを、先頭 252 バイトの CRC-32/MPEG-2 で
+    上書きし、bootrom が受理できるイメージにする。書き込み後に検証も行う。
+
+    Args:
+        path: 対象ファイル（256 バイト以上のフラッシュイメージ）。
+
+    Returns:
+        正常なら 0、異常なら 1（プロセスの終了コードに使う）。
+    """
+    with open(path, "r+b") as f:
+        head: bytes = f.read(BOOT2_TOTAL)
+        if len(head) < BOOT2_TOTAL:
+            print(f"NG：ファイルが {len(head)} バイトしかありません"
+                  f"（先頭 {BOOT2_TOTAL} バイトが boot2 である必要があります）")
+            return 1
+        crc: int = crc32_mpeg2(head[:PAYLOAD_SIZE])
+        f.seek(PAYLOAD_SIZE)
+        f.write(struct.pack("<I", crc))
+
+    with open(path, "rb") as f:
+        verify: bytes = f.read(BOOT2_TOTAL)
+    stored: int = struct.unpack("<I", verify[PAYLOAD_SIZE:])[0]
+    if stored != crc:
+        print(f"NG：書き込み後の検証に失敗 stored=0x{stored:08X} expected=0x{crc:08X}")
+        return 1
+    print(f"OK：先頭 256 バイトの CRC 欄を 0x{crc:08X} に設定しました（CRC-32/MPEG-2）")
+    return 0
+
 def main() -> None:
     """コマンドライン引数を解釈し、boot2 の生成または検証を実行する。
     
@@ -139,12 +171,17 @@ def main() -> None:
                         help="出力先（256B）。--check 時は不要")
     parser.add_argument("--check", action="store_true",
                         help="入力を 256B の boot2 として検証する（生成しない）")
+    parser.add_argument("--patch", action="store_true",
+                        help="最終イメージ先頭 256B の CRC 欄をインプレースで埋める")
     args: argparse.Namespace = parser.parse_args()
 
     self_test()
 
     with open(args.input, "rb") as f:
         data: bytes = f.read()
+
+    if args.patch:
+        sys.exit(patch(args.input))
 
     if args.check:
         sys.exit(check(data))

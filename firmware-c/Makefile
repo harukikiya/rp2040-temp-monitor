@@ -157,3 +157,19 @@ docs-clean:
 clean:
 	rm -f /tmp/test.c /tmp/test.o
 	rm -rf $(BUILD_DIR)
+
+# 実機に書き込むフラッシュイメージを生成する（段階2-D-2）
+# firmware.elf の先頭 256 バイトは boot2 だが CRC 欄が 0 のため、そのままでは
+# bootrom に受理されない（USB ブートローダに落ちる）。--patch で CRC 欄を埋める。
+firmware: verify-linker
+	@echo ""
+	@echo "=== [1] フラッシュイメージ生成（.elf → .bin） ==="
+	arm-none-eabi-objcopy -O binary $(BUILD_DIR)/firmware.elf $(BUILD_DIR)/firmware.bin
+	@echo "firmware.bin: $$(wc -c < $(BUILD_DIR)/firmware.bin) バイト"
+	@echo ""
+	@echo "=== [2] boot2 CRC 欄をパッチ（先頭 256B の CRC-32/MPEG-2） ==="
+	python3 tools/pad_checksum.py --patch $(BUILD_DIR)/firmware.bin
+	@echo ""
+	@echo "=== firmware：書き込み可能なイメージを生成しました ==="
+	@echo "ホスト側で：openocd -f interface/cmsis-dap.cfg -c \"adapter speed 5000\" \\"
+	@echo " -f target/rp2040.cfg -c \"program firmware-c/build/firmware/bin verify reset exit 0x10000000\""
