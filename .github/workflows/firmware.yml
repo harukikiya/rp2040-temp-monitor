@@ -1,0 +1,35 @@
+name: Firmware Static Verification
+
+on:
+  # PR 作成/更新時に検証
+  pull_request:
+    branches:
+      - master
+  # master への push 時にも検証
+  push:
+    branches:
+      - master
+  # 手動実行も可能
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: Verify firmware (linker + boot2 checksum)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # dev container と同じ構成：コンパイルは clang（--target=arm-none-eabi）、
+      # リンカ・バイナリユーティリティは Arm GNU binutils。
+      # make check は gdb-multiarch / OpenOCD / svdconv 依存の環境確認のため CI 対象外。
+      - name: Install toolchain (clang + Arm GNU binutils)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang binutils-arm-none-eabi
+
+      - name: verify-linker（リンカ / crt0 静的検証）
+        run: make -C firmware-c verify-linker
+
+      - name: boot2-checksum（CRC32 付加と検証）
+        run: make -C firmware-c boot2-checksum
