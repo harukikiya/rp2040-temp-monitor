@@ -177,4 +177,9 @@ SECTIONS
     /* SRAM 使用量が 264KB が超えていないかリンク時に検出するためのチェック。
      * __StackTop が RAM の末尾を越えたらリンクエラーにする。 */
     ASSERT(__StackTop <= (ORIGIN(RAM) + LENGTH(RAM)), "RAM overflow: スタックが SRAM をはみ出している")
+
+    /* __etext（crt0 の .data コピー元）と .data の LMA（実際の初期値の位置）の一致を
+     * リンク時に強制する。.ARM.exidx 等の orphan セクションが __etext と .data の間に
+     * 割り込む退行を機械検出する（2-C-4 で顕在化した不整合の再発防止）。 */
+    ASSERT(__etext == LOADADDR(.data), "__etext != .data LMA: orphan section が __etext と .data の間に割り込んでいる")
 }

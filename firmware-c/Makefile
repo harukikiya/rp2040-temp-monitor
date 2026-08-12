@@ -80,20 +80,35 @@ verify-linker: boot2
 	@echo ""
 	@echo "=== [1] セクション配置（.boot2=0x10000000, .vector=0x10000100 を確認） ==="
 	arm-none-eabi-readelf -S $(BUILD_DIR)/firmware.elf
+	@arm-none-eabi-readelf -S $(BUILD_DIR)/firmware.elf | grep -E "\.boot2 " | grep -q 10000000 \
+		&& echo "OK：.boot2 = 0x10000000" \
+		|| { echo "NG：.boot2 が 0x10000000 に無い"; exit 1; }
+	@arm-none-eabi-readelf -S $(BUILD_DIR)/firmware.elf | grep -E "\.vectors " | grep -q 10000100 \
+		&& echo "OK：.vectors = 0x10000100" \
+		|| { echo "：.vectors が 0x10000100 に無い（VTOR 256 バイト境界制約）"; exit 1;}
 	@echo ""
-	@echo "=== [2] LMA/VMA 分離（.data の VMA=RAM, LMA=FLASH を確認） ==="
+	@echo "=== [2] LMA/VMA 分離（.data の VMA=RAM, LMA=FLASH。 __etext=LMA は ld の ASSERT が保証） ==="
 	arm-none-eabi-objdump -h $(BUILD_DIR)/firmware.elf
 	@echo ""
-	@echo "=== [3] シンボル（リンカ生成 + crt0） ==="
-	@arm-none-eabi-nm $(BUILD_DIR)/firmware.elf | grep -E \
-		"__etext|__data_start__|__data_end__|__bss_start__|__bss_end__|__StackTop|__StackBottom" \
-		|| echo "（一部シンボル未検出 - 確認が必要）"
+	@echo "=== [3] 必須シンボル（リンカ生成 + crt0。欠落で fail） ==="
+	@arm-none-eabi-nm $(BUILD_DIR)/firmware.elf > $(BUILD_DIR)/nm.txt
+	@fail=0; for sym in __etext __data_start__ data_end__ __bss_start__ __bss_end__ \
+		__StackTop __StackBottom __VECTOR_TABLE Reset_Handler Default_Handler main; do \
+		if grep -qE " $$sym$$" $(BUILD_DIR)/nm.txt; then \
+			grep -E " $$sym$$" $(BUILD_DIR)/nm.txt; \
+		else \
+			echo "NG：シンボル $$sym が見つからない"; fail=1; \
+		fi; \
+	done; exit $$fail
 	@echo ""
-	@echo "=== [4] .vectors の配置内容（[0]=__StackTop, [1]=Reset_Handler|1） ==="
+	@echo "=== [4] .vectors の配置内容（[0]=__StackTop, [1]=Reset_Handler|1, サイズ=192B） ==="
 	arm-none-eabi-objdump -s -j .vectors $(BUILD_DIR)/firmware.elf
+	python3 verify/check_vectors.py $(BUILD_DIR)/firmware.elf
 	@echo ""
 	@echo "=== [5] メモリ使用量 ==="
 	arm-none-eabi-size $(BUILD_DIR)/firmware.elf
+	@echo ""
+	@echo "=== verify-linker：全チェック PASS ==="
 
 # boot2 に CRC32 チェックサムを付加し、焼ける 256 バイトのブロブを生成する（段階2-C-3-5）
 # RP2040 の bootrom は先頭 252 バイトの CRC-32/MPEG-2 を末尾 4 バイトと照合する。
