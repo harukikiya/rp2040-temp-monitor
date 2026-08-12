@@ -59,6 +59,9 @@ jobs:
       - name: Build documentation
         run: uv run sphinx-build -b html -W docs _build/html
 
+      - name: Lint metadata
+        run: uv run python scripts/metadata_lint.py --config metadata_lint.yaml
+
       - name: Upload artifact
         # Pages デプロイ用、master の push 時のみ
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
