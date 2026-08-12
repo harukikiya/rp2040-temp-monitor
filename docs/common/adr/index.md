@@ -12,6 +12,7 @@
 0001-integrated-adc-dma-driver
 0002-inter-core-data-flow
 0003-linker-script-conventions
+0004-metadata-management
 ```
 
 ## 新規ADRの追加
