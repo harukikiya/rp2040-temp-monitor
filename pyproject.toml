@@ -10,4 +10,5 @@ dependencies = [
     "sphinx-rtd-theme>=2.0",
     "sphinxcontrib-plantuml>=0.30",
     "pillow>=10.0",
+    "pyyaml>=6.0",
 ]
