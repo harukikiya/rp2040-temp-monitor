@@ -7,4 +7,5 @@
 :maxdepth: 2
 
 linker
+metadata
 ```

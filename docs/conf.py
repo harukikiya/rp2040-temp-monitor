@@ -126,3 +126,6 @@ needs_warnings = {
     "sys_without_swr": "type == 'sysreq' and not refines_back",
     "approved_with_tbd": "status == 'approved' and tbd_items is not None and tbd_items != ''",
 }
+
+# needs.json を出力（metadata linter・将来のレビュワー/RAG の突合先。ADR-0004）
+needs_build_json = True

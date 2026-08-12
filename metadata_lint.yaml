@@ -1,0 +1,30 @@
+# メタデータ linter 設定（スキーマ v0 / ADR-0004）
+# 実行：リポジトリルートで、docs ビルド（needs.json 生成）後に
+#   uv run python scripts/metadata_lint.py --config metadata_lint.yaml
+
+docs_globs:
+  - "docs/**/*.md"
+docs_exclude:
+  - "docs/_build/**"
+  - "docs/common/adr/template.md"
+src_globs:
+  - "firmware-c/src/**/*.c"
+  - "firmware-c/src/**/*.h"
+needs_json: "_build/html/needs.json"
+adr_dir: "docs/common/adr"
+
+# 既存文書に frontmatter が付与されるまで false（付与完了後 true へ = ADR-0004 決定5）
+frontmatter_required: false
+
+required_fields: [type]
+enums:
+  type: [requirements, design_doc, adr, learning, test_design, progress]
+  aspice: [SYS.1, SYS.2, SWE.1, SWE.2, SWE.3, SWE.4, SWE.5, SWE.6]
+forbidden_fields:
+  timestamp: "P1: git から導出する（手動日付は腐る）"
+  status: "needs 側と二重管理になる"
+  author: "git blame が知っている"
+known_fields: [type, title, description, tags, doc_id, aspice, stage, relates]
+
+# 段階3（実装フェーズ）開始まで false（未実装要件の info が全 SWR 分出て冗長なため）
+report_unsatisfied_needs: false
