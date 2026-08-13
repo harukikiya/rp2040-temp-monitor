@@ -9,8 +9,15 @@ BUILD_DIR := build
 # objcopy / objdump / size などのバイナリユーティリティは
 # Arm GNU Toolchain （arm-none-eabi-*）のものを使う。
 ARM_CC		:= clang --target=arm-none-eabi
-ARM_CFLAGS	:= -mcpu=cortex-m0plus -mthumb -nostdlib -ffreestanding
-ARM_INCLUDE	:= -I src/boot
+# -g はデバッグ情報（DWARF）を .elf に埋め込む。gdb で変数を型付きで参照するために必要。
+# 非ロードセクションなので、焼く .bin には一切影響しない（バイト一致を確認ずみ）。
+ARM_CFLAGS	:= -mcpu=cortex-m0plus -mthumb -nostdlib -ffreestanding -g
+ARM_INCLUDE	:= -I src -I src/boot
+
+# C ソース一覧（ファイルを増やしたらここに追加する）
+C_SRCS		:= startup_rp2040.c main.c clocks.c
+C_OBJS		:= $(addprefix $(BUILD_DIR)/,$(C_SRCS:.c=.o))
+vpath %.c src src/startup
 
 check:
 	@echo "=== Compiler check ==="
@@ -45,6 +52,13 @@ check:
 	@arm-none-eabi-objdump -d /tmp/test.o | head -10
 	@rm -f /tmp/test.c /tmp/test.o
 
+# C ソースの共通コンパイル規則
+# Makefile も前提条件に含める。コンパイルフラグを変えたときに再コンパイルさせるため
+# （make は .c の更新しか見ないので、フラグ変更だけでは再ビルドされない）。
+$(BUILD_DIR)/%.o: %.c Makefile
+	@mkdir -p $(BUILD_DIR)
+	$(ARM_CC) $(ARM_CFLAGS) $(ARM_INCLUDE) -c $< -o $@
+
 # boot2（Boot Stage 2）を no-SDK でアセンブルする
 # pico-sdk に依存せず、自前の rp2040_boot_regs.h と boot2_helpers/ のみで
 # アセンブルできることを確認する。
@@ -65,16 +79,11 @@ boot2:
 # セクション配置・LMA/VMA 分離・シンボル・ベクタ表内容を確認する。
 verify-linker: boot2
 	@mkdir -p $(BUILD_DIR)
-	@echo "=== crt0（startup）と main のコンパイル ==="
-	$(ARM_CC) $(ARM_CFLAGS) $(ARM_INCLUDE) \
-		-c src/startup/startup_rp2040.c \
-		-o $(BUILD_DIR)/startup_rp2040.o
-	$(ARM_CC) $(ARM_CFLAGS) $(ARM_INCLUDE) \
-		-c src/main.c \
-		-o $(BUILD_DIR)/main.o
+	@echo "=== C ソースのコンパイル ==="
+	$(MAKE) $(C_OBJS)
 	@echo "=== リンク（rp2040.ld 適用） ==="
 	arm-none-eabi-ld -z noexecstack -T src/linker/rp2040.ld \
-		$(BUILD_DIR)/boot2.o $(BUILD_DIR)/startup_rp2040.o $(BUILD_DIR)/main.o \
+		$(BUILD_DIR)/boot2.o $(C_OBJS) \
 		-o $(BUILD_DIR)/firmware.elf
 	@echo "リンク成功: $(BUILD_DIR)/firmware.elf"
 	@echo ""
