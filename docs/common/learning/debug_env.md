@@ -226,3 +226,46 @@ bootrom ではなく自前ファームが動作しており、crt0 から main �
 ROSC は温度・電圧・個体差で変動するため、この値に保証はない。正確な時間制御と
 UART のボーレート生成には、段階 2-D-3 で XOSC（12 MHz 水晶）と PLL による
 クロック初期化が必要になる。
+
+## クロック初期化後の実測（段階 2-D-3-1）
+
+XOSC + PLL による初期化後、周波数カウンタ（FC0）で実測した値。
+
+| クロック | 実測値 | 期待値 |
+| --- | --- | --- |
+| XOSC | 12000 kHz | 12 MHz 水晶 |
+| clk_ref | 12001 kHz | 12 MHz（FC0 の分解能による ±1 kHz 誤差） |
+| clk_sys | 125000 kHz | 125 MHz |
+| clk_peri | 125000 kHz | 125 MHz |
+
+ROSC 時代の約 6.7 MHz から、水晶精度の 125 MHz になった。
+以降は TIMER による正確な時間待ちが使える。
+
+## gdb で変数を型付きで読むための設定
+
+`-g` を付けずにビルドすると、gdb は次のようになる。
+
+``` text
+(No debugging symbols found in build/firmware.elf)
+(gdb) print g_khz_clk_sys
+'g_khz_clk_sys' has unknown type; cast it to its declared type
+```
+
+シンボルのアドレスは分かるが型情報が無いため、値を解釈できない。
+`ARM_CFLAGS` に `-g` を追加すると解決する。デバッグ情報は非ロードセクションなので、
+**焼く .bin はバイト単位で変わらない**（確認ずみ）。
+
+型情報が無い状態でも、メモリを直接読めば値は確認できる。
+
+``` text
+(gdb) x/4wd &g_khz_xosc
+0x20000000 <g_khz_xosc>:        12000   12001   125000  125000
+```
+
+### つまずきどころ
+
+- **`-g` を足したのに反映されない**: make は `.c` の更新しか見ないため、Makefile の
+  フラグを変えただけでは `.o` が再コンパイルされない。`make clean` するか、
+  コンパイル規則の前提条件に `Makefile` を加える（本プロジェクトでは後者を採用）。
+- **再ビルドしても gdb の表示が変わらない**: gdb は起動時にシンボルを読み込む。
+  ビルドし直したら gdb を再起動する（`detach` → `quit` → `gdb-multiarch build/firmware.elf`）。
