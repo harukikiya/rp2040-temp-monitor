@@ -1,26 +1,23 @@
 /**
  * @file main.c
- * @brief オンボード LED（GPIO25）を点滅させる。
+ * @brief クロックを初期化し、正確な周期で LED を点滅させる。
  * 
  * @details
- * 段階 2-D-2。自前の boot2 + crt0 で起動し、SDK を使わずに GPIO を直接叩いて
- * LED を点滅させる。ここまでに作った boot2（CRC 付き）・リンカスクリプト・crt0 が
- * 実機で正しく動くことを、初めて目視で確認するための最小プログラム。
+ * 段階 2-D-3-1。ROSC（約 6.5 MHz、精度なし）から XOSC + PLL による 125 MHz へ
+ * 切り替え、TIMER を使って正確に 500 ms 周期で LED を点滅させる。
  * 
- * 手順：
- *      1. IO_BANK0 と PADS_BANK0 のリセットを解除する
- *      2. GPIO25 の機能を SIO（F5）に設定する
- *      3. GPIO25 を出力する
- *      4. 出力を反転しながら遅延ループを回す
+ * クロックが正しく設定できたかは周波数カウンタ（FC0）で実測し、結果をグローバル変数に保存する。
+ * UART がまだ無いため、値は gdb で読み出して確認する。
  * 
- * @note クロックはまだ初期化していないため、システムクロックは ROSC（約 6.5 MHz、個体差あり）で動作する。
- *       したがって点滅周期は不正確である。正確な時間制御は段階 2-D-3 でクロックを初期化してから扱う。
+ * @note 期待値：clk_sys = 125000 kHz、clk_peri = 125000 kHz、XOSC = 12000 kHz。
  * 
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #include <stdint.h>
 
+#include "clocks.h"
+#include "delay.h"
 #include "rp2040_regs.h"
 
 /** @brief オンボード LED が接続された GPIO 番号。 */
@@ -29,12 +26,21 @@
 /** @brief LED のビットマスク。 */
 #define LED_MASK            (1u << LED_PIN)
 
+/** @brief LED の点滅半周期[ミリ秒]。 */
+#define BLINK_HALF_MS       500u
+
 /**
- * @brief 遅延ループの反復回数。
- * @details ROSC（約 6.5 MHz）と最適化なしのビルドを前提に、点滅が目視できる程度
- *          （半周期およそ 0.3 秒）を狙った概算値。正確な時間ではない。
+ * @name 周波数の実測値（gdb で確認するためのグローバル変数）
+ * @brief clocks_init() 後に FC0 で測定した値[kHz]。
+ * @details .bss ではなく .data に置いて初期値を持たせることで、crt0 の
+ *          .data コピーが働いていることも同時に確認できる。
+ * @{
  */
-#define DELAY_LOOPS         200000u
+volatile uint32_t g_khz_xosc     = 1u;
+volatile uint32_t g_khz_clk_ref  = 1u;
+volatile uint32_t g_khz_clk_sys  = 1u;
+volatile uint32_t g_khz_clk_peri = 1u;
+/** @} */
 
 /**
  * @brief IO_BANK0 と PAD_BANK0 のリセットを解除する。
@@ -56,11 +62,6 @@ static void gpio_reset_release(void)
 
 /**
  * @brief LED 用に GPIO25 を出力として初期化する。
- * 
- * @details
- * 機能選択を SIO にしたうえで、SIO の GPIO_OE_SET で出力を有効化する。
- * 初期状態は消灯（GPIO_OUT_CLR）とする。
- * SIO は SET/CLR/XOR 専用レジスタを持ち、読み出し・変更・書き戻しをせずに単一ビットを操作できる。
  */
 static void led_init(void)
 {
@@ -89,17 +90,27 @@ static void delay_loop(volatile uint32_t count)
 /**
  * @brief アプリケーションのエントリポイント。
  * 
- * @details GPIO を初期化し、LED を点滅させ続ける。組み込みのため戻らない。
+ * @details
+* クロックを初期化し、各クロックの実測値を保存してから LED を点滅させる。
+ * 組み込みのため戻らない。
  * 
  * @return int 形式上の戻り値（実際には戻らない）。
  */
 int main(void)
 {
+
+    clocks_init();
+
+    g_khz_xosc      = clocks_measure_khz(FC0_SRC_XOSC);
+    g_khz_clk_ref   = clocks_measure_khz(FC0_SRC_CLK_REF);
+    g_khz_clk_sys   = clocks_measure_khz(FC0_SRC_CLK_SYS);
+    g_khz_clk_peri  = clocks_measure_khz(FC0_SRC_CLK_PERI);
+
     gpio_reset_release();
     led_init();
 
     for (;;) {
         SIO_GPIO_OUT_XOR = LED_MASK;
-        delay_loop(DELAY_LOOPS);
+        delay_ms(BLINK_HALF_MS);
     }
 }
