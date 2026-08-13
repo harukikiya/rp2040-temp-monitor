@@ -9,15 +9,17 @@
     "customizations": {
         "vscode": {
             "extensions": [
-                "ms-vscode.cpptools",
                 "llvm-vs-code-extensions.vscode-clangd",
                 "marus25.cortex-debug",
-                "ms-vscode.cmake-tools"
+                "ms-vscode.hexeditor"
             ],
             "settings": {
-                "C_Cpp.default.compilerPath":"/usr/bin/clang",
-                "C_Cpp.default.intelliSenseMode": "linux-clang-arm",
-                "clangd.path": "/usr/bin/clangd"
+                "clangd.path": "/usr/bin/clangd",
+                "clangd.arguments": [
+                    "--compile-commands-dir=/workspace",
+                    "--background-index",
+                    "--header-insertion=never"
+                ]
             }
         }
     },

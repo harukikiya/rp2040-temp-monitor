@@ -1,4 +1,4 @@
-.PHONY: check clean docs docs-clean boot2 verify-linker boot2-checksum
+.PHONY: check clean docs docs-clean boot2 verify-linker boot2-checksum compile-commands
 
 # ビルド成果物の出力先
 BUILD_DIR := build
@@ -78,7 +78,7 @@ verify-linker: boot2
 		-o $(BUILD_DIR)/firmware.elf
 	@echo "リンク成功: $(BUILD_DIR)/firmware.elf"
 	@echo ""
-	@echo "=== [1] セクション配置（.boot2=0x10000000, .vector=0x10000100 を確認） ==="
+	@echo "=== [1] セクション配置（.boot2=0x10000000, .vectors=0x10000100 を確認） ==="
 	arm-none-eabi-readelf -S $(BUILD_DIR)/firmware.elf
 	@arm-none-eabi-readelf -S $(BUILD_DIR)/firmware.elf | grep -E "\.boot2 " | grep -q 10000000 \
 		&& echo "OK：.boot2 = 0x10000000" \
@@ -173,3 +173,13 @@ firmware: verify-linker
 	@echo "=== firmware：書き込み可能なイメージを生成しました ==="
 	@echo "ホスト側で：openocd -f interface/cmsis-dap.cfg -c \"adapter speed 5000\" \\"
 	@echo " -f target/rp2040.cfg -c \"program firmware-c/build/firmware/bin verify reset exit 0x10000000\""
+
+# clangd 用の compile_commands.json を生成する（エディタ支援専用）
+# bear がコンパイラ呼び出しを記録し、--target=arm-none-eabi や -I src/boot を clangd に伝える。
+# これが無いと clangd はホスト（x86_64）向けとして解釈する。
+compile-commands:
+	@rm -f compile_commands.json
+	$(MAKE) clean
+	bear -- $(MAKE) verify-linker
+	@echo ""
+	@echo "=== compile_commands.json を生成しました ==="

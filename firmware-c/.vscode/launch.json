@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Attach (external OpenOCD on host)",
+            "type": "cortex-debug",
+            "request": "attach",
+            "servertype": "external",
+            "gdbTarget": "host.docker.internal:3333",
+            "gdbPath": "/usr/bin/gdb-multiarch",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build/firmware.elf",
+            "device": "RP2040"
+        }
+    ]
+}
