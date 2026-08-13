@@ -5,7 +5,7 @@ include/generated/svdconv.log
 build/
 *.elf
 *.bin
-".uf2
+*.uf2
 *.map
 
 # エディタ・OS固有
@@ -14,3 +14,7 @@ build/
 
 # Doxygen生成物(再生成可能なため Git管理しない)
 docs/api/
+
+# clangd（エディタ支援用の生成物）
+compile_commands.json
+.cache/

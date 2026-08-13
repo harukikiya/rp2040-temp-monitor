@@ -21,6 +21,8 @@ RUN apt-get update && apt-get install -y \
     clang \
     clang-tidy \
     clang-format \
+    clangd \
+    bear \
     lld \
     llvm \
     gdb-multiarch \
