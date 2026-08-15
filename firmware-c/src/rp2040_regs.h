@@ -12,7 +12,7 @@
  * 本リポジトリに含めていないため、現時点では本ファイルを使う。
  *
  * 各値の出典：RP2040 データシート Section 2.14（RESETS）、2.19（GPIO / IO_BANK0）、
- * 2.3.1（SIO）、2.15（CLOCKS）、2.16（XOSC）、2.18（PLL）、4.6（TIMER）、4.7（WATCHDOG）。
+ * 2.3.1（SIO）、2.15（CLOCKS）、2.16（XOSC）、2.18（PLL）、4.2（UART）、4.6（TIMER）、4.7（WATCHDOG）。
  *
  * @copyright SPDX-License-Identifier: BSD-3-Clause
  */
@@ -320,5 +320,65 @@
 
 /** TICK の ENABLE ビット */
 #define WATCHDOG_TICK_ENABLE_BITS   (1u << 9)
+
+
+/* ============================================================
+ * UART0（データシート 4.2）
+ * PL011 互換の UART。clk_peri を分周してボーレートを作る。
+ * ============================================================ */
+
+/** UART0 のベースアドレス */
+#define UART0_BASE                  0x40034000u
+
+/** 送受信データレジスタ */
+#define UART0_DR                    REG32(UART0_BASE + 0x00u)
+
+/** フラグレジスタ（TXFF: bit 5、RXFE: bit 4、BUSY: bit 3） */
+#define UART0_FR                    REG32(UART0_BASE + 0x18u)
+
+/** ボーレート分周比の整数部（16 ビット） */
+#define UART0_IBRD                  REG32(UART0_BASE + 0x24u)
+
+/** ボーレート分周比の小数部（6 ビット。1/64 単位） */
+#define UART0_FBRD                  REG32(UART0_BASE + 0x28u)
+
+/** 回線制御（WLEN: bit 6:5、FEN: bit 4）。IBRD/FBRD はここへの書き込みで反映される */
+#define UART0_LCR_H                 REG32(UART0_BASE + 0x2Cu)
+
+/** 制御（UARTEN: bit 0、TXE: bit 8、RXE: bit 9） */
+#define UART0_CR                    REG32(UART0_BASE + 0x30u)
+
+/** FR の TXFF（送信 FIFO 満杯）ビット */
+#define UART0_FR_TXFF_BITS          (1u << 5)
+
+/** FR の BUSY（送信中）ビット */
+#define UART0_FR_BUSY_BITS          (1u << 3)
+
+/** LCR_H の WLEN = 8 ビット（値 3 を bit 6:5 に置く） */
+#define UART0_LCR_H_WLEN_8BITS      (3u << 5)
+
+/** LCR_H の FEN（FIFO 有効）ビット */
+#define UART0_LCR_H_FEN_BITS        (1u << 4)
+
+/** CR の UARTEN（UART 有効）ビット */
+#define UART0_CR_UARTEN_BITS        (1u << 0)
+
+/** CR の TXE（送信有効）ビット */
+#define UART0_CR_TXE_BITS           (1u << 8)
+
+/** CR の RXE（受信有効）ビット */
+#define UART0_CR_RXE_BITS           (1u << 9)
+
+/** RESET / RESET_DONE の UART0 ビット（bit 22） */
+#define RESETS_UART0_BITS           (1u << 22)
+
+/** GPIO 機能選択の UART（RP2040 では F2） */
+#define IO_BANK0_FUNCSEL_UART       2u
+
+/** UART0 TX に割り当てる GPIO 番号 */
+#define UART0_TX_PIN                0u
+
+/** UART0 RX に割り当てる GPIO 番号 */
+#define UART0_RX_PIN                1u
 
 #endif /* RP2040_REGS_H */
