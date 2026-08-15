@@ -15,7 +15,7 @@ ARM_CFLAGS	:= -mcpu=cortex-m0plus -mthumb -nostdlib -ffreestanding -g
 ARM_INCLUDE	:= -I src -I src/boot
 
 # C ソース一覧（ファイルを増やしたらここに追加する）
-C_SRCS		:= startup_rp2040.c main.c clocks.c
+C_SRCS		:= startup_rp2040.c main.c clocks.c uart.c
 C_OBJS		:= $(addprefix $(BUILD_DIR)/,$(C_SRCS:.c=.o))
 vpath %.c src src/startup
 
