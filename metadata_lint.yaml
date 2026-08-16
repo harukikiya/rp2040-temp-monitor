@@ -28,3 +28,11 @@ known_fields: [type, title, description, tags, doc_id, aspice, stage, relates]
 
 # 段階3（実装フェーズ）開始まで false（未実装要件の info が全 SWR 分出て冗長なため）
 report_unsatisfied_needs: false
+
+# 本文中に書かれた要件 ID の実在性を検査する（ADR-0004 の P3「ID を貫通させる」）
+check_body_ids: true
+
+# 実在しないことを承知で言及している ID（欠番の説明文など）
+body_id_ignore:
+  - SWR_032   # 欠番（20_software_requirements.md で明文化）
+  - ARC_004   # 欠番（30_architecture.md で明文化）
