@@ -86,38 +86,10 @@ HAL 層の設計を行う際は、特定チップへの密結合を避けるよ�
 
 ## 段階構成
 
-```
-段階1: 要件分析(完了)
-段階2: ベアメタル基盤(チュートリアル位置づけ、進行中)
-  段階2-A: dev container 構築(完了)
-  段階2-B: SVD → C ヘッダ生成(完了)
-  段階2-C: リンカスクリプト、boot2、crt0
-    段階2-C-1: 座学 + Doxygen 導入(完了)
-    段階2-C-2: boot2 取り込みと日本語コメント(完了)
-    段階2-C-3: リンカスクリプト
-    段階2-C-4: crt0
-    段階2-C-5: 動作確認用最小プログラム
-  段階2-D: 実機動作確認とデバッグ・観測環境の確立
-    段階2-D-1: OpenOCD/gdb 接続確立（ブレーク・レジスタ / メモリ確立）
-    段階2-D-2: LED 点滅（crt0 + 最小main、観測はgdbとLED）
-    段階2-D-3: クロック初期化（XOSC / PLL / clk_peri） + UARTログ確立
-段階2.5: 設計フェーズ(ASPICE V字モデル準拠)
-  段階2.5-1: アーキテクチャ設計 + 統合テスト設計
-  段階2.5-2: コンポーネント設計 + コンポーネントテスト設計
-  段階2.5-3: 詳細設計 + ユニットテスト設計
-段階3: 実装フェーズ(SWE.3.2)
-  段階3-1: HAL 層
-  段階3-2: Driver 層
-  段階3-3: Service 層
-  段階3-4: Application 層
-段階4: テスト実施フェーズ
-  段階4-1: ユニットテスト実施
-  段階4-2: コンポーネントテスト実施
-  段階4-3: 統合テスト実施
-  段階4-4: 受け入れテスト実施
-段階5〜9: Rust 移植
-段階10: 言語比較ドキュメント
-```
+段階構成と進捗ステータスは [README.md](README.md#進捗ステータス) を唯一の情報源とする。
+二重管理を避けるため、本ファイルには転記しない。
+
+段階番号の分類と issue の付け方は「issue 系統」の節を参照。
 
 ## ディレクトリ構成
 
@@ -129,12 +101,16 @@ rp2040-temp-monitor/
 │   │   ├── principles.md
 │   │   ├── doc_review.md
 │   │   └── typo_check.md
-│   └── commands/              ← スラッシュコマンド(将来用)
+│   └── commands/              ← スラッシュコマンド
 ├── CONTRIBUTING.md            ← 開発の進め方
-├── README.md                  ← プロジェクト概要、進捗ステータス
+├── README.md                  ← プロジェクト概要、段階構成、進捗ステータス
 ├── Makefile                   ← docs ビルド用
+├── metadata_lint.yaml         ← メタデータ検査の設定(ADR-0004)
+├── scripts/                   ← ツール
+│   ├── metadata_lint.py       ← メタデータ検査(CI で実行)
+│   └── collect_worklog.py     ← 作業時間の集計
 ├── .github/
-│   ├── workflows/             ← GitHub Actions
+│   ├── workflows/             ← GitHub Actions(docs / firmware)
 │   ├── ISSUE_TEMPLATE/
 │   └── pull_request_template.md
 ├── docs/                      ← Sphinx + sphinx-needs ドキュメント
@@ -146,19 +122,28 @@ rp2040-temp-monitor/
 │       ├── 20_software_requirements.md
 │       ├── 30_architecture.md
 │       ├── 99_traceability.md
-│       └── adr/               ← Architecture Decision Records
+│       ├── adr/               ← Architecture Decision Records
+│       └── learning/          ← 学習ノート(リンカ、メタデータ、デバッグ環境)
 ├── diagrams/                  ← PlantUML 図
 │   └── architecture/
-└── firmware-c/                ← C 実装(段階2 以降)
+└── firmware-c/                ← C 実装
     ├── .devcontainer/
     ├── Doxyfile
     ├── Makefile
     ├── svd/                   ← RP2040.svd
     ├── include/
-    │   └── generated/         ← svdconv 生成ヘッダ
+    │   └── generated/         ← svdconv 生成ヘッダ(CMSIS-Core 未導入のため現状未使用)
     ├── src/
-    │   └── boot/              ← boot2、crt0(予定)
-    ├── tools/                 ← ビルドスクリプト
+    │   ├── boot/              ← boot2(no-SDK 化済み)
+    │   ├── startup/           ← crt0(ベクタテーブル、Reset_Handler)
+    │   ├── linker/            ← rp2040.ld
+    │   ├── rp2040_regs.h      ← C 用の自前レジスタ定義
+    │   ├── clocks.c / .h      ← XOSC + PLL によるクロック初期化
+    │   ├── delay.h            ← TIMER ベースの時間待ち
+    │   ├── uart.c / .h        ← UART ログ出力
+    │   └── main.c
+    ├── tools/                 ← ビルドツール(pad_checksum.py)
+    ├── verify/                ← ビルド成果物の静的検証(check_vectors.py)
     └── docs/                  ← Doxygen 生成(.gitignore で除外)
 ```
 
