@@ -13,6 +13,7 @@
         MD05：禁止フィールドの不在（timestamp / status / author など = P1/二重管理防止）
         MD06：未知キー（警告 - OKF は未知キー許容を求めるため error にしない）
         MD07：relates[] の参照実在性（needs.json の ID / ADR ファイル）
+        MD08：本文中に書かれた要件 ID の実在性（壊れた参照の検出）
     [SRC] ソースコード
         SRC01：@satisfies タグの参照 ID が needs.json に実在するか
     [XR] 横断
@@ -58,6 +59,9 @@ SATISFIES_RE: re.Pattern[str] = re.compile(
 
 # relates での参照形式：要件 ID（SWR_001 等）と ADR 番号（ADR-0003）
 NEED_ID_RE: re.Pattern[str] = re.compile(r"^[A-Z][A-Z0-9]*_[0-9]+$")
+
+# 本文中に現れる要件 ID らしき文字列（SYS_001 / ARC_002 / SWR_040 など）
+BODY_ID_RE: re.Pattern[str] = re.compile(r"\b([A-Z][A-Z0-9]*_[0-9]{3,})\b")
 ADR_ID_RE: re.Pattern[str] = re.compile(r"^ADR-([0-9]{4})$")
 
 # ---------------------------------------------------------------------------
@@ -112,6 +116,8 @@ class Config:
         forbidden_fields: フィールド名 → 禁止理由（P1 / 二重管理防止）。
         known_fields: 既知フィールドの一覧（これ以外は MD06 警告）。
         report_unsatisfied_needs: True なら XR01（未実装要件）を情報として出す。
+        check_body_ids: True なら MD08（本文中の ID 参照の実在性）を検査する。
+        body_id_ignore: MD08 で無視する ID の一覧（欠番の説明文など、実在しないことを承知で言及している ID）。
     """
     docs_globs: list[str]
     docs_exclude: list[str]
@@ -124,6 +130,8 @@ class Config:
     forbidden_fields: dict[str, str]
     known_fields: list[str]
     report_unsatisfied_needs: bool
+    check_body_ids: bool
+    body_id_ignore: list[str]
 
 # ---------------------------------------------------------------------------
 # 読み込み
@@ -161,6 +169,8 @@ def load_config(path: str) -> Config:
         forbidden_fields=dict(raw.get("forbidden_fields") or {}),
         known_fields=list(raw.get("known_fields", [])),
         report_unsatisfied_needs=bool(raw.get("report_unsatisfied_needs", True)),
+        check_body_ids=bool(raw.get("check_body_ids", False)),
+        body_id_ignore=list(raw.get("body_id_ignore", [])),
     )
 
 def load_needs_ids(path: Optional[str]) -> Optional[set[str]]:
@@ -270,6 +280,9 @@ def check_markdown(
     with open(path, "r", encoding="utf-8") as f:
         text: str = f.read()
 
+    # MD08 は frontmatter の有無と無関係なので、先に実行する
+    findings.extend(check_body_ids(path, text, cfg, need_ids))
+
     fm: Optional[dict[str, Any]]
     err: Optional[str]
     fm, err = extract_frontmatter(text)
@@ -343,6 +356,55 @@ def check_markdown(
                 "MD07", SEVERITY_WARNING, path,
                 f"relates の '{ref_s}' は既知の ID 形式"
                 "（SWR_001 / SYS_001 / ADR-0001 等）ではありません"))
+
+    return findings
+
+def check_body_ids(
+        path: str,
+        text: str,
+        cfg: Config,
+        need_ids: Optional[set[str]],
+) -> list[Finding]:
+    """本文中に書かれた要件 ID が needs.json に実在するかを検査する。
+
+    ADR や設計書の説明文から要件を参照するとき、ID 書き間違えても
+    Sphinx はエラーにしない（単なる文字列のため）。
+    壊れた参照はトレーサビリティの穴になるので、機械的に検出する。
+
+    need 定義そのものの ``:id:`` 行は対象外にする。また、欠番を説明する
+    文のように「実在しないことを承知で言及している」ID は設定で除外できる。
+
+    Args:
+        path: 対象ファイル。
+        text: ファイル全文。
+        cfg: linter 設定。
+        need_ids: needs.json 由来の ID 集合（None なら検査しない）。
+
+    Returns:
+        検出結果の一覧。
+    """
+    if (not cfg.check_body_ids) or (need_ids is None):
+        return []
+
+    findings: list[Finding] = []
+    ignore: set[str] = set(cfg.body_id_ignore)
+    reported: set[str] = set()
+
+    for lineno, line in enumerate(text.splitlines(), start=1):
+        # need 定義の :id: 行は定義側なので対象外
+        if line.lstrip().startswith(":id:"):
+            continue
+        for m in BODY_ID_RE.finditer(line):
+            ref: str = m.group(1)
+            if (ref in need_ids) or (ref in ignore) or (ref in reported):
+                continue
+            reported.add(ref)
+            findings.append(Finding(
+                "MD08", SEVERITY_ERROR, path,
+                f"本文中の '{ref}' が needs.json に存在しません"
+                "（誤記の可能性。意図的な言及なら body_id_ignore に追加する）",
+                line=lineno
+            ))
 
     return findings
 
