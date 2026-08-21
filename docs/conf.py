@@ -100,7 +100,7 @@ needs_fields = {
         "description": "要求が属するレイヤ",
         "schema": {
             "type": "string",
-            "enum": ["application", "service", "driver", "hal"],
+            "enum": ["application", "service", "driver", "hal", "platform"],
         },
         "nullable": True,
     }
