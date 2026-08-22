@@ -13,6 +13,7 @@
 0002-inter-core-data-flow
 0003-linker-script-conventions
 0004-metadata-management
+0005-requirement-approval-gate
 ```
 
 ## 新規ADRの追加
