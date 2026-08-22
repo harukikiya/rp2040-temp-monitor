@@ -91,6 +91,11 @@ needs_fields = {
         "schema": {"type": "string"},
         "nullable": True,
     },
+    "open_params": {
+        "description": "承認を阻まないパラメータ未確定項目（解決時期の明記が必須。ADR-0005）",
+        "schema": {"type": "string"},
+        "nullable": True,
+    },
     "rationale": {
         "description": "要件の根拠",
         "schema": {"type": "string"},
@@ -125,6 +130,10 @@ needs_warnings = {
     "swr_without_parent": "type == 'swreq' and not refines",
     "sys_without_swr": "type == 'sysreq' and not refines_back",
     "approved_with_tbd": "status == 'approved' and tbd_items is not None and tbd_items != ''",
+    "open_params_without_due": (
+        "open_params is not None and open_params != '' "
+        "and '解決時期:' not in open_params"
+    ),
 }
 
 # needs.json を出力（metadata linter・将来のレビュワー/RAG の突合先。ADR-0004）
