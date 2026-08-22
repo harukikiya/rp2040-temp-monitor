@@ -39,16 +39,24 @@ type == 'swreq' and layer == 'application',type == 'swreq' and layer == 'service
 
 #### 承認済みだがTBDが残っている要件
 
-ステータスが`approved`であるにもかかわらず未確定項目を含む要件は、ステータス管理の観点で曖昧な状態である。
-これらは：
-- ステータスを`draft`に下げるか
-- TBDを解消して値を確定するか
-- TBDの内容がステータスに影響しない補足情報なら、その旨を明示するか
-の判断が必要となる。
+`tbd_items` は構造的 TBD（要件の構造・インタフェースが未定で設計できない項目）のみを保持する。
+したがってこの表に要件が現れることは、承認基準の違反を意味する。
+値の仮置きは `open_params` に置き、承認を阻まない（ADR-0005）。
 
 ```{needtable}
 :filter: status == 'approved' and tbd_items is not None and tbd_items != ''
 :columns: id, title, type, tbd_items
+:style: table
+```
+
+#### 実機調整の宿題が残る要件
+
+`open_params` を持つ要件は承認できるが、値は仮置きのままである。
+段階4 で閉じるべき宿題の一覧として使う。
+
+```{needtable}
+:filter: open_params is not None and open_params != ''
+:columns: id, title, status, open_params
 :style: table
 ```
 
