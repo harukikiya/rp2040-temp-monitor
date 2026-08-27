@@ -11,7 +11,7 @@
 
 ```{swreq} ADC初期化と温度センサチャネル選択
 :id: SWR_001
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: driver
 :refines: SYS_001
@@ -23,7 +23,7 @@ ADCドライバはRP2040のADCを初期化し、内蔵温度センサ（ADCチ�
 
 ```{swreq} ADC+DMAによる自動サンプリング
 :id: SWR_002
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: driver
 :refines: SYS_001
@@ -35,7 +35,7 @@ CPU介入なしに連続的にラップアラウンドし、サンプリング�
 
 ```{swreq} ハードウェアタイマーによるサンプリングトリガ
 :id: SWR_003
-:status: draft
+:status: approved
 :type_kind: Timing
 :layer: hal
 :refines: SYS_001
@@ -47,7 +47,7 @@ Timer HALはADCのサンプリングを100Hz周期（10ms間隔）でトリガ�
 
 ```{swreq} I2Cバスの初期化
 :id: SWR_004
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: driver
 :refines: SYS_001
@@ -59,7 +59,7 @@ I2C信号線には内蔵プルアップを使用すること。
 
 ```{swreq} LCD1602の初期化
 :id: SWR_005
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: driver
 :refines: SYS_001
@@ -70,7 +70,7 @@ HD44780の初期化シーケンスに準拠し、必要なディレイを遵守�
 
 ```{swreq} 表示更新の周期制御
 :id: SWR_006
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: application
 :refines: SYS_001
@@ -84,7 +84,7 @@ HD44780の初期化シーケンスに準拠し、必要なディレイを遵守�
 
 ```{swreq} リングバッファのデータ構造
 :id: SWR_007
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: service
 :refines: SYS_002
@@ -97,7 +97,7 @@ HD44780の初期化シーケンスに準拠し、必要なディレイを遵守�
 
 ```{swreq} リングバッファのスナップショット取得
 :id: SWR_008
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: service
 :refines: SYS_002
@@ -110,7 +110,7 @@ HD44780の初期化シーケンスに準拠し、必要なディレイを遵守�
 
 ```{swreq} 統計値の計算
 :id: SWR_009
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: service
 :refines: SYS_002
@@ -123,7 +123,7 @@ HD44780の初期化シーケンスに準拠し、必要なディレイを遵守�
 
 ```{swreq} 「最新値」の定義
 :id: SWR_010
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: service
 :refines: SYS_002
@@ -135,7 +135,7 @@ HD44780の初期化シーケンスに準拠し、必要なディレイを遵守�
 
 ```{swreq} 温度の物理変換
 :id: SWR_011
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: service
 :refines: SYS_002
@@ -148,7 +148,7 @@ RP2040内蔵温度センサのデータシートに記載された変換式を�
 
 ```{swreq} 統計値の表示フォーマット
 :id: SWR_012
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: application
 :refines: SYS_002
@@ -162,7 +162,7 @@ RP2040内蔵温度センサのデータシートに記載された変換式を�
 
 ```{swreq} トレンド判定モジュールの構成
 :id: SWR_013
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: service
 :refines: SYS_003
@@ -174,7 +174,7 @@ RP2040内蔵温度センサのデータシートに記載された変換式を�
 
 ```{swreq} 前半後半平均比較によるトレンド判定アルゴリズム
 :id: SWR_014
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: service
 :refines: SYS_003
@@ -189,7 +189,7 @@ RP2040内蔵温度センサのデータシートに記載された変換式を�
 
 ```{swreq} トレンド判定の閾値
 :id: SWR_015
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: service
 :refines: SYS_003
@@ -202,7 +202,7 @@ RP2040内蔵温度センサのデータシートに記載された変換式を�
 
 ```{swreq} トレンド判定の実行周期
 :id: SWR_016
-:status: draft
+:status: approved
 :type_kind: Timing
 :layer: application
 :refines: SYS_003
@@ -213,7 +213,7 @@ RP2040内蔵温度センサのデータシートに記載された変換式を�
 
 ```{swreq} トレンドの表示記号
 :id: SWR_017
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: application
 :refines: SYS_003
