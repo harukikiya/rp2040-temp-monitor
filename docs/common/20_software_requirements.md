@@ -11,7 +11,7 @@
 
 ```{swreq} ADC初期化と温度センサチャネル選択
 :id: SWR_001
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: driver
 :refines: SYS_001
@@ -23,23 +23,23 @@ ADCドライバはRP2040のADCを初期化し、内蔵温度センサ（ADCチ�
 
 ```{swreq} ADC+DMAによる自動サンプリング
 :id: SWR_002
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: driver
 :refines: SYS_001
-:rationale: リングバッファサイズは8192サンプル(16KB)。1分間のトレンド判定対象期間(6000サンプル)を保持するために必要なサイズで、2のべき乗にすることでインデックス計算をビット演算で行える。RAM使用量はRP2040の264KBに対して十分小さい。統合ADC+DMAドライバとする判断はADR-0001参照。
+:rationale: ラップアラウンドはRP2040 DMAのring指定モードで実現する。リングバッファサイズはSWR_007が規定する。統合ADC+DMAドライバとする判断はADR-0001参照。
 
 ADC+DMAドライバはADC FIFOからリングバッファへ16bit単位でDMA転送を行うこと。
-DMAはring指定モードで動作し、CPU介入なしに連続的にラップアラウンドすること。
-リングバッファのサイズは8192サンプルとする。
+CPU介入なしに連続的にラップアラウンドし、サンプリングを継続すること。
 ```
 
 ```{swreq} ハードウェアタイマーによるサンプリングトリガ
 :id: SWR_003
-:status: draft
+:status: approved
 :type_kind: Timing
 :layer: hal
 :refines: SYS_001
+:rationale: サンプリング周期100HzはSYS_001のTBD-002で仮置き。変更時は本要件の値も連動する。
 
 Timer HALはADCのサンプリングを100Hz周期（10ms間隔）でトリガすること。
 トリガはハードウェアタイマー経由で行い、ソフトウェアによるポーリングは行わないこと。
@@ -47,19 +47,19 @@ Timer HALはADCのサンプリングを100Hz周期（10ms間隔）でトリガ�
 
 ```{swreq} I2Cバスの初期化
 :id: SWR_004
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: driver
 :refines: SYS_001
 :open_params: TBD-010 I2C速度は仮置きで100kHz、LCDの応答性を確認後に決定。解決時期: 段階3-2。TBD-017 GPIO割り当ては未定。内蔵プルアップを使用する前提のみ確定している。解決時期: 段階3-2。
 
-I2C HALはRP2040のI2C0を100kHzのマスタモードで初期化すること。
-GPIO割り当ては実装段階で確定するが、内蔵プルアップを使用する前提とする。
+I2CドライバはRP2040のI2C0を100kHzのマスタモードで初期化すること。
+I2C信号線には内蔵プルアップを使用すること。
 ```
 
 ```{swreq} LCD1602の初期化
 :id: SWR_005
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: driver
 :refines: SYS_001
@@ -70,10 +70,11 @@ HD44780の初期化シーケンスに準拠し、必要なディレイを遵守�
 
 ```{swreq} 表示更新の周期制御
 :id: SWR_006
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: application
 :refines: SYS_001
+:rationale: 表示周期500msはSYS_001のTBD-001で仮置き。変更時は本要件およびSWR_016の値も連動する。
 
 アプリケーション層は500ms周期でLCD表示を更新すること。
 500ms未満の周期での更新を行わないこと（LCD表示のチラつき防止）。
@@ -83,20 +84,20 @@ HD44780の初期化シーケンスに準拠し、必要なディレイを遵守�
 
 ```{swreq} リングバッファのデータ構造
 :id: SWR_007
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: service
 :refines: SYS_002
-:rationale: ハードウェア非依存の純粋なデータ構造として実装することで、ホスト側ユニットテストを可能にする（ARC_005準拠）。
+:rationale: ハードウェア非依存の純粋なデータ構造として実装することで、ホスト側ユニットテストを可能にする（ARC_005準拠）。2の冪乗にすることでインデックス計算をビット演算で行える。現在の設定（100Hz・1分間）では6000サンプルとなり、これを超える最小の2の冪乗は8192サンプル（16KB）。RAM使用量はRP2040の264KBに対して十分小さい。
 
 リングバッファモジュールは固定長の円環状データ構造を提供すること。
-バッファサイズは2の冪乗とし、要素は16bit unsigned integerとする。
+バッファサイズはSYS_003のトレンド判定対象期間を保持できる最小の2の冪乗とし、要素は16bit unsigned integerとする。
 ハードウェア依存の機構（レジスタアクセス等）に依存しないこと。
 ```
 
 ```{swreq} リングバッファのスナップショット取得
 :id: SWR_008
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: service
 :refines: SYS_002
@@ -109,7 +110,7 @@ HD44780の初期化シーケンスに準拠し、必要なディレイを遵守�
 
 ```{swreq} 統計値の計算
 :id: SWR_009
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: service
 :refines: SYS_002
@@ -122,37 +123,38 @@ HD44780の初期化シーケンスに準拠し、必要なディレイを遵守�
 
 ```{swreq} 「最新値」の定義
 :id: SWR_010
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: service
 :refines: SYS_002
-:rationale: サンプリング100Hzでは1サンプルが10ms間隔となり、単一サンプルではノイズの影響を受けやすい。直近1秒分(100サンプル)の平均を取ることで読み取り値が安定する。
+:rationale: 単一サンプルではノイズの影響を受けやすいため、直近1秒分の平均を取ることで読み取り値が安定する。現在の設定（100Hz）では100サンプルに相当する。
 
-「最新値」は直近100サンプル（直近1秒間）の平均値として定義すること。
+「最新値」は直近1秒間の平均値として定義すること。
 統計モジュールはこの「最新値」を計算する関数を提供すること。
 ```
 
 ```{swreq} 温度の物理変換
 :id: SWR_011
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: service
 :refines: SYS_002
-:rationale: 物理変換は統計計算やリングバッファとは独立した責務であり、単体で再利用価値があるため独立モジュールとする。較正係数の差し替えにも対応しやすい。
+:rationale: 物理変換は統計計算やリングバッファとは独立した責務であり、単体で再利用価値があるため独立モジュールとする。較正係数の差し替えにも対応しやすい。Cortex-M0+にFPUがないため浮動小数点はソフトウェアエミュレーションとなる。表示に必要な分解能は0.1℃であり固定小数点でも満たせるため、内部表現は要件では規定せず段階2.5-3で決定する。
 
-温度変換モジュールはADC生値（12bit unsigned integer）を℃単位の浮動小数点値に変換する関数を提供すること。
+温度変換モジュールはADC生値（12bit unsigned integer）を℃単位の温度値に変換する関数を提供すること。
+温度値の分解能は0.1℃以上とすること。内部表現は規定しない。
 RP2040内蔵温度センサのデータシートに記載された変換式を使用し、較正係数は引数またはモジュール初期化時に設定可能とすること。
 ```
 
 ```{swreq} 統計値の表示フォーマット
 :id: SWR_012
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: application
 :refines: SYS_002
 :open_params: TBD-011 表示レイアウトの最終形は実機で文字幅と読みやすさを確認後に決定する。解決時期: 段階4-4。
 
-アプリケーション層は統計値（最新値・最小値・平均値）をLCD1602（16文字×2行）に収まる形式でフォーマットすること。
+アプリケーション層は統計値（最新値・最大値・最小値・平均値）をLCD1602（16文字×2行）に収まる形式でフォーマットすること。
 温度値は摂氏で小数点以下1桁まで表示する。
 ```
 
@@ -160,7 +162,7 @@ RP2040内蔵温度センサのデータシートに記載された変換式を�
 
 ```{swreq} トレンド判定モジュールの構成
 :id: SWR_013
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: service
 :refines: SYS_003
@@ -172,14 +174,14 @@ RP2040内蔵温度センサのデータシートに記載された変換式を�
 
 ```{swreq} 前半後半平均比較によるトレンド判定アルゴリズム
 :id: SWR_014
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: service
 :refines: SYS_003
-:rationale: 始点と終点の単純比較ではノイズに弱く、線形回帰は計算負荷が高い。前半・後半の平均を比較する方式は、ノイズに対するロバスト性と実装のシンプルさのバランスが良い。
+:rationale: 始点と終点の単純比較ではノイズに弱く、線形回帰は計算負荷が高い。前半・後半の平均を比較する方式は、ノイズに対するロバスト性と実装のシンプルさのバランスが良い。現在の設定（100Hz・1分間）では6000サンプルを3000サンプルずつに分割することになる。
 
 トレンド判定は以下のアルゴリズムで行うこと：
-1. 直近1分間（6000サンプル）を前半30秒（3000サンプル）と後半30秒（3000サンプル）に分割する
+1. SYS_003のトレンド判定対象期間を前半と後半に二等分する
 2. 前半の平均温度と後半の平均温度をそれぞれ計算する
 3. 後半平均から前半平均を減じた差分を求める
 4. 差分が閾値を超えるかで上昇/下降/横ばいを判定する
@@ -187,7 +189,7 @@ RP2040内蔵温度センサのデータシートに記載された変換式を�
 
 ```{swreq} トレンド判定の閾値
 :id: SWR_015
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: service
 :refines: SYS_003
@@ -200,18 +202,18 @@ RP2040内蔵温度センサのデータシートに記載された変換式を�
 
 ```{swreq} トレンド判定の実行周期
 :id: SWR_016
-:status: draft
+:status: approved
 :type_kind: Timing
 :layer: application
 :refines: SYS_003
-:rationale: LCD表示更新と同じ周期にすることで、計算結果と表示が同期する。トレンドは緩やかに変化するため500ms周期での判定で十分。
+:rationale: LCD表示更新と同じ周期にすることで、計算結果と表示が同期する。トレンドは緩やかに変化するため500ms周期での判定で十分。500msはSYS_001のTBD-001で仮置き。変更時はSWR_006と連動する。
 
 アプリケーション層はLCD表示更新と同じ500ms周期でトレンド判定を実行し、結果を表示に反映すること。
 ```
 
 ```{swreq} トレンドの表示記号
 :id: SWR_017
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: application
 :refines: SYS_003
