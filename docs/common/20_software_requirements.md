@@ -391,10 +391,9 @@ SWR_032 は欠番。要件整理の過程で削除されたが、要件IDの安�
 :type_kind: Functional
 :layer: driver
 :refines: SYS_006
-:rationale: 戻り値による同期的な通知パターンに統一する（ADR-0003候補）。Application層が表示要求の都度、戻り値を見て対応する。
+:rationale: 戻り値による同期的な通知パターンに統一する（ADR化候補。段階2.5-1で起こす）。Application層が表示要求の都度、戻り値を見て対応する。上位層の対応はSWR_039が規定する。
 
 LCD Driverの表示関数は、エラー状態または送信失敗時に、失敗を示す戻り値を返すこと。
-Application層はこの戻り値を見てLED通知の開始判断を行うこと。
 ```
 
 ```{swreq} 回復検出と自動再初期化
