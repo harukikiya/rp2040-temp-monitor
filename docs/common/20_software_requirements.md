@@ -358,7 +358,7 @@ Core1からの送信時にSIO FIFOが満杯となるケースに備え、Service
 
 ```{swreq} I2C送信失敗の検出
 :id: SWR_031
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: hal
 :refines: SYS_006
@@ -375,7 +375,7 @@ SWR_032 は欠番。要件整理の過程で削除されたが、要件IDの安�
 
 ```{swreq} エラー状態への遷移
 :id: SWR_033
-:status: draft
+:status: approved
 :type_kind: Safety
 :layer: driver
 :refines: SYS_006
@@ -387,31 +387,30 @@ SWR_032 は欠番。要件整理の過程で削除されたが、要件IDの安�
 
 ```{swreq} エラー状態の上位層への通知
 :id: SWR_034
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: driver
 :refines: SYS_006
-:rationale: 戻り値による同期的な通知パターンに統一する（ADR-0003候補）。Application層が表示要求の都度、戻り値を見て対応する。
+:rationale: 戻り値による同期的な通知パターンに統一する（ADR化候補。段階2.5-1で起こす）。Application層が表示要求の都度、戻り値を見て対応する。上位層の対応はSWR_039が規定する。
 
 LCD Driverの表示関数は、エラー状態または送信失敗時に、失敗を示す戻り値を返すこと。
-Application層はこの戻り値を見てLED通知の開始判断を行うこと。
 ```
 
 ```{swreq} 回復検出と自動再初期化
 :id: SWR_035
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: driver
 :refines: SYS_006
-:rationale: LCDの電源断などからの復帰時にはHD44780の初期化シーケンスを再実行する必要がある。この回復処理はLCDの内部状態管理であり、Driver層の責務(ARC_003準拠)。Application層に再初期化の知識を持たせない。
+:rationale: LCDの電源断などからの復帰時にはHD44780の初期化シーケンスを再実行する必要がある。この回復処理はLCDの内部状態管理であり、Driver層の責務(ARC_003準拠)。Application層に再初期化の知識を持たせない。試行の契機と周期（表示要求に便乗するか独自のタイマを持つか）は設計に委ねる。
 
-LCD Driverはエラー状態にある間も、表示要求が来たタイミング（または独自のリトライタイミング）でI2C送信を試行すること。
+LCD Driverはエラー状態にある間も、定期的にI2C送信を試行すること。
 送信が成功したときは、LCDが電源断などから復帰した可能性があるとして再初期化シーケンスを自動的に実行し、その後通常状態へ復帰すること。
 ```
 
 ```{swreq} 再初期化中のビジー応答
 :id: SWR_036
-:status: draft
+:status: approved
 :type_kind: Safety
 :layer: driver
 :refines: SYS_006
@@ -423,7 +422,7 @@ Application層は次の周期で再試行することを想定する。
 
 ```{swreq} GPIO HALの提供
 :id: SWR_037
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: hal
 :refines: SYS_006
@@ -432,42 +431,42 @@ Application層は次の周期で再試行することを想定する。
 GPIO HALはRP2040の任意のGPIOピンに対する以下の操作を提供すること：
 - ピンを出力モードに設定
 - ピンをHigh/Lowに設定
-- 入力モードでの値の読み取り（将来用、本要件群では未使用）
 GPIO HALは状態を保持しないこと。
 ```
 
 ```{swreq} LED Driverによる点滅パターン管理
 :id: SWR_038
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: driver
 :refines: SYS_006
 :open_params: TBD-008 点滅パターン（周期、デューティー比）はLEDの視認性を実機で確認後に決定。エラーの種類別に異なるパターンを使う設計も将来的に検討する。解決時期: 段階4-4。
 
-LED Driverはオンボードのオン/オフを制御する点滅パターンを管理すること。
+LED DriverはオンボードLEDのオン/オフを制御する点滅パターンを管理すること。
 点滅の有効化・無効化と、パターンに応じたGPIO出力の更新を担うこと。
 PicoのオンボードLEDがGPIO25に接続されている前提とするが、ピン番号はLED Driverの内部定数とし、GPIO HALには汎用ピン番号を渡すこと。
 ```
 
 ```{swreq} Application層によるLED制御の判断
 :id: SWR_039
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: application
 :refines: SYS_006
 
 Application層はLCD Driverの戻り値を監視し、エラー検出後にLED Driverへ点滅開始を指示すること。
 連続成功検出時には点滅停止を指示すること。
-連続成功の判定基準は次のSWRで定義する。
+連続成功の判定基準はSWR_040が定義する。
 ```
 
 ```{swreq} LED通知停止の判定基準
 :id: SWR_040
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: application
 :refines: SYS_006
 :rationale: 単発の成功直後にエラー通知を停止すると、表示が一瞬出てまた消える、LEDが点滅と消灯を繰り返すといったチャタリング的な挙動になる。連続成功の確認により安定して回復したことを判定する。
+:open_params: TBD-018 連続成功の閾値3回は仮置き、実機で回復判定の安定性を観察して調整する。解決時期: 段階4-3。
 
 エラー通知中（LED点滅中）の状態で表示が成功したとき、即座にLED通知を停止せず、連続成功が一定回数続いたタイミングで停止指示を出すこと。
 連続成功の閾値は3回とする。
@@ -477,7 +476,7 @@ Application層はLCD Driverの戻り値を監視し、エラー検出後にLED D
 
 ```{swreq} フラッシュからの実行環境確立
 :id: SWR_041
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: platform
 :rationale: RP2040のブートROMは外部フラッシュ先頭256バイトのうち先頭252バイトのCRC-32/MPEG-2を末尾4バイトと照合し、不一致の場合はUSBブートローダとして起動する。すなわちチェックサムはブート成立の必須条件である。詳細はADR-0003参照。
@@ -489,7 +488,7 @@ Application層はLCD Driverの戻り値を監視し、エラー検出後にLED D
 
 ```{swreq} メモリ配置の確定
 :id: SWR_042
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: platform
 :rationale: Cortex-M0+のVTORは256バイト境界の値しか保持できないため、ベクタテーブルの配置アドレスは256バイト境界に固定する必要がある。配置の詳細はADR-0003参照。
@@ -502,7 +501,7 @@ Application層はLCD Driverの戻り値を監視し、エラー検出後にLED D
 
 ```{swreq} C実行環境の初期化
 :id: SWR_043
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: platform
 :rationale: C言語の言語仕様が前提とする初期化（初期値付き変数の値の保証、未初期化変数のゼロ初期化）は、ベアメタル環境ではスタートアップコードが実施する必要がある。
@@ -515,12 +514,13 @@ Application層はLCD Driverの戻り値を監視し、エラー検出後にLED D
 
 ```{swreq} システムクロックと時間基準の確立
 :id: SWR_044
-:status: draft
+:status: approved
 :type_kind: Timing
 :layer: platform
 :rationale: リセット直後のリングオシレータは周波数が個体差・温度で変動するため、サンプリング周期やI2C・UARTの通信速度の基準にできない。水晶発振子を基準としたクロックを確立することで、時間に関わる全要件の前提を満たす。
 :refines: SYS_007
 
 アプリケーションの実行開始前に、水晶発振子を基準とするシステムクロックを確立すること。
+システムクロック周波数は125MHzとすること。
 1マイクロ秒単位で経過時間を測定できる時間基準を提供すること。
 ```
