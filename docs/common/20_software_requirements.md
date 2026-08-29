@@ -358,7 +358,7 @@ Core1からの送信時にSIO FIFOが満杯となるケースに備え、Service
 
 ```{swreq} I2C送信失敗の検出
 :id: SWR_031
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: hal
 :refines: SYS_006
@@ -375,7 +375,7 @@ SWR_032 は欠番。要件整理の過程で削除されたが、要件IDの安�
 
 ```{swreq} エラー状態への遷移
 :id: SWR_033
-:status: draft
+:status: approved
 :type_kind: Safety
 :layer: driver
 :refines: SYS_006
@@ -387,7 +387,7 @@ SWR_032 は欠番。要件整理の過程で削除されたが、要件IDの安�
 
 ```{swreq} エラー状態の上位層への通知
 :id: SWR_034
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: driver
 :refines: SYS_006
@@ -398,7 +398,7 @@ LCD Driverの表示関数は、エラー状態または送信失敗時に、失�
 
 ```{swreq} 回復検出と自動再初期化
 :id: SWR_035
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: driver
 :refines: SYS_006
@@ -409,7 +409,7 @@ LCD Driverはエラー状態にある間も、定期的にI2C送信を試行す�
 
 ```{swreq} 再初期化中のビジー応答
 :id: SWR_036
-:status: draft
+:status: approved
 :type_kind: Safety
 :layer: driver
 :refines: SYS_006
@@ -421,7 +421,7 @@ Application層は次の周期で再試行することを想定する。
 
 ```{swreq} GPIO HALの提供
 :id: SWR_037
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: hal
 :refines: SYS_006
@@ -435,7 +435,7 @@ GPIO HALは状態を保持しないこと。
 
 ```{swreq} LED Driverによる点滅パターン管理
 :id: SWR_038
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: driver
 :refines: SYS_006
@@ -448,7 +448,7 @@ PicoのオンボードLEDがGPIO25に接続されている前提とするが、�
 
 ```{swreq} Application層によるLED制御の判断
 :id: SWR_039
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: application
 :refines: SYS_006
@@ -460,7 +460,7 @@ Application層はLCD Driverの戻り値を監視し、エラー検出後にLED D
 
 ```{swreq} LED通知停止の判定基準
 :id: SWR_040
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: application
 :refines: SYS_006
@@ -475,7 +475,7 @@ Application層はLCD Driverの戻り値を監視し、エラー検出後にLED D
 
 ```{swreq} フラッシュからの実行環境確立
 :id: SWR_041
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: platform
 :rationale: RP2040のブートROMは外部フラッシュ先頭256バイトのうち先頭252バイトのCRC-32/MPEG-2を末尾4バイトと照合し、不一致の場合はUSBブートローダとして起動する。すなわちチェックサムはブート成立の必須条件である。詳細はADR-0003参照。
@@ -487,7 +487,7 @@ Application層はLCD Driverの戻り値を監視し、エラー検出後にLED D
 
 ```{swreq} メモリ配置の確定
 :id: SWR_042
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: platform
 :rationale: Cortex-M0+のVTORは256バイト境界の値しか保持できないため、ベクタテーブルの配置アドレスは256バイト境界に固定する必要がある。配置の詳細はADR-0003参照。
@@ -500,7 +500,7 @@ Application層はLCD Driverの戻り値を監視し、エラー検出後にLED D
 
 ```{swreq} C実行環境の初期化
 :id: SWR_043
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: platform
 :rationale: C言語の言語仕様が前提とする初期化（初期値付き変数の値の保証、未初期化変数のゼロ初期化）は、ベアメタル環境ではスタートアップコードが実施する必要がある。
@@ -513,7 +513,7 @@ Application層はLCD Driverの戻り値を監視し、エラー検出後にLED D
 
 ```{swreq} システムクロックと時間基準の確立
 :id: SWR_044
-:status: draft
+:status: approved
 :type_kind: Timing
 :layer: platform
 :rationale: リセット直後のリングオシレータは周波数が個体差・温度で変動するため、サンプリング周期やI2C・UARTの通信速度の基準にできない。水晶発振子を基準としたクロックを確立することで、時間に関わる全要件の前提を満たす。
