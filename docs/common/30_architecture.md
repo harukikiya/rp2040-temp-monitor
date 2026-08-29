@@ -92,7 +92,7 @@ HAL層のインタフェースはモック実装の置き換え可能である�
 
 ## コア間のデータフロー
 
-本システムはCore0（I/O系）とCore1（計算系）で責務を分担する（SYS_004、SWR_018、SWR_019）。
+本システムはCore0（I/O系）とCore1（計算系）で責務を分担する（SYS_004）。
 両コアの間でどのようにデータが受け渡されるかを以下に示す。
 
 ```{uml} ../../diagrams/architecture/inter_core_data_flow.puml
