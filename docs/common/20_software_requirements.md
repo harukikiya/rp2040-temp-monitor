@@ -235,7 +235,7 @@ SWR_18 と SWR_19 は欠番。Core0 と Core1 への責務割り当てはソフ�
 
 ```{swreq} Core1起動の機構
 :id: SWR_020
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: hal
 :refines: SYS_004
@@ -247,7 +247,7 @@ SIO HALはCore1を起動するための関数を提供すること。
 
 ```{swreq} Core1起動のアプリケーション層ロジック
 :id: SWR_021
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: application
 :refines: SYS_004
@@ -267,7 +267,7 @@ SWR_022 と SWR_023 は欠番。SWR_022 は「具体的な機構は SWR_027 が�
 
 ```{swreq} 各コアのメインループ構造
 :id: SWR_024
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: application
 :refines: SYS_004
@@ -293,7 +293,7 @@ SWR_025 は欠番。上記は段階4で合格・不合格を判定できる記�
 
 ```{swreq} 計算結果の構造体原子性
 :id: SWR_026
-:status: draft
+:status: approved
 :type_kind: Safety
 :layer: service
 :refines: SYS_005
@@ -305,7 +305,7 @@ Core1からCore0へ受け渡す計算結果は、構造体全体として原子�
 
 ```{swreq} SIO FIFOによる構造体送信
 :id: SWR_027
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: hal
 :refines: SYS_005
@@ -320,7 +320,7 @@ SIO HALはSIO FIFOを用いてコア間でデータを送受信する関数を�
 
 ```{swreq} 計算結果送信のService層API
 :id: SWR_028
-:status: draft
+:status: approved
 :type_kind: Functional
 :layer: service
 :refines: SYS_005
@@ -332,7 +332,7 @@ Service層はSIO HALを使って、計算結果の構造体を送受信するAPI
 
 ```{swreq} 受信側のメッセージ完全性保証
 :id: SWR_029
-:status: draft
+:status: approved
 :type_kind: Safety
 :layer: service
 :refines: SYS_005
