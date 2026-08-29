@@ -26,7 +26,7 @@ ADCドライバはRP2040のADCを初期化し、内蔵温度センサ（ADCチ�
 :status: approved
 :type_kind: Functional
 :layer: driver
-:refines: SYS_001
+:refines: SYS_001, SYS_004
 :rationale: ラップアラウンドはRP2040 DMAのring指定モードで実現する。リングバッファサイズはSWR_007が規定する。統合ADC+DMAドライバとする判断はADR-0001参照。
 
 ADC+DMAドライバはADC FIFOからリングバッファへ16bit単位でDMA転送を行うこと。
@@ -224,7 +224,7 @@ RP2040内蔵温度センサのデータシートに記載された変換式を�
 記号はSWR_012の表示フォーマットに組み込まれる。
 ```
 
-## SYS_004（コア分散）からの派生
+## SYS_004（サンプリングの取りこぼし防止）からの派生
 
 ``` {note}
 SWR_18 と SWR_19 は欠番。Core0 と Core1 への責務割り当てはソフトウェア要件ではなく
