@@ -37,6 +37,7 @@ body_id_ignore:
   - SWR_018   # 欠番（責務割り当ては段階2.5-1でARCへ）
   - SWR_019   # 欠番（責務割り当ては段階2.5-1でARCへ）
   - SWR_022   # 欠番（SWR_027と重複）
-  - SWR_032   # 欠番（SWR_028と重複、レイヤ規律はARC_001へ）
+  - SWR_023   # 欠番（SWR_028と重複、レイヤ規律はARC_001へ）
+  - SWR_025   # 欠番（スコープ宣言のためnoteへ変更）
   - SWR_032   # 欠番（20_software_requirements.md で明文化）
   - ARC_004   # 欠番（30_architecture.md で明文化）
