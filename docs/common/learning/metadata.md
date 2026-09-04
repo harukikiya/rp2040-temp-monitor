@@ -117,7 +117,7 @@ relates: [ADR-0001]     # 文書レベルの関連（オブジェクトレベル
 
 ### 3.3 オブジェクト層：sphinx-needs は現行を維持
 
-既存属性（`id` / `status` / `type_kind` / `layer` / `refines` / `rationale` / `tbd_items`）で十分。テスト設計段階（2.5）で `verified_by` 等のリンク型を追加する際は、**双方向で辿れる型付きリンク**として needs の設定に足す（frontmatter に書かない）。
+既存属性（`id` / `status` / `type_kind` / `layer` / `refines` / `rationale` / `tbd_items`）で十分。検証設計段階（2.5）で `verified_by` 等のリンク型を追加する際は、**双方向で辿れる型付きリンク**として needs の設定に足す（frontmatter に書かない）。
 
 ### 3.4 コード層：Doxygen + トレースタグ
 
