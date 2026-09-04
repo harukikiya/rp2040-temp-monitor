@@ -47,10 +47,14 @@
   - `30_architecture.md` (SWE.2.1)
   - `40_component_design.md` (SWE.2.2)
   - `50_detailed_design.md` (SWE.3.1)
-  - `60_integration_test_design.md`
-  - `70_component_test_design.md`
-  - `80_unit_test_design.md`
+  - `60_unit_verification_design.md` (SWE.4)
+  - `70_component_verification_design.md` (SWE.5.2)
+  - `80_integration_verification_design.md` (SWE.5.1)
+  - `90_software_verification_design.md` (SWE.6)
   - `99_traceability.md`
+- 設計文書と検証設計文書のペアの番号の和が 110 になっているか(ADR-0006)
+- プロセス名称が Automotive SPICE 4.0 の定義に従っているか
+  (「適格性確認テスト」「受け入れテスト」は 4.0 に存在しない)
 
 ### 6. PlantUML 図の参照
 
