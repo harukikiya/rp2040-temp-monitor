@@ -90,8 +90,9 @@ V 字の左を降りる順に並んでおり問題ないが、検証設計側（
 
 SWE.2.1 / SWE.2.2 および SWE.5.1 / SWE.5.2 の細分は規格上の区分ではなく、本プロジェクト
 独自の記法である。4.0 の SWE.5 は「コンポーネント検証」と「統合検証」の 2 側面を
-1 プロセスに含むため、細分番号は公式名称の語順に従い SWE.5.1 = コンポーネント検証、
-SWE.5.2 = 統合検証とする。
+1 プロセスに含む。細分番号は本プロジェクトで先に定めた SWE.5.1 = 統合検証、
+SWE.5.2 = コンポーネント検証を維持する。公式名称の語順（コンポーネント検証 →
+統合検証）とは逆になるが、既存の記述との整合を優先する。
 
 ### 文書番号
 
@@ -104,8 +105,8 @@ SWE.5.2 = 統合検証とする。
 | 40 | `40_component_design.md` | SWE.2.2 | 段階2.5-2 |
 | 50 | `50_detailed_design.md` | SWE.3.1 | 段階2.5-3 |
 | 60 | `60_unit_verification_design.md` | SWE.4 | 段階2.5-3 |
-| 70 | `70_component_verification_design.md` | SWE.5.1 | 段階2.5-2 |
-| 80 | `80_integration_verification_design.md` | SWE.5.2 | 段階2.5-1 |
+| 70 | `70_component_verification_design.md` | SWE.5.2 | 段階2.5-2 |
+| 80 | `80_integration_verification_design.md` | SWE.5.1 | 段階2.5-1 |
 | 90 | `90_software_verification_design.md` | SWE.6 | 段階2.5-0-4 |
 | 99 | `99_traceability.md` | — | — |
 
@@ -113,8 +114,8 @@ SWE.5.2 = 統合検証とする。
 
 ```text
 20 ←→ 90   SWE.1  ←→ SWE.6     段階2.5-0
-30 ←→ 80   SWE.2.1 ←→ SWE.5.2  段階2.5-1
-40 ←→ 70   SWE.2.2 ←→ SWE.5.1  段階2.5-2
+30 ←→ 80   SWE.2.1 ←→ SWE.5.1  段階2.5-1
+40 ←→ 70   SWE.2.2 ←→ SWE.5.2  段階2.5-2
 50 ←→ 60   SWE.3.1 ←→ SWE.4    段階2.5-3
 ```
 
