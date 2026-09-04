@@ -63,7 +63,7 @@ issue は内容に応じて3系統で管理する：
 例：
 
 - `[INFRA-1] GitHub Actions と GitHub Pages の導入`
-- `[INFRA-2] pre-commit hook の導入`
+- `[INFRA-3] 作業時間計測基盤（打刻コマンド + 集計 + Pages公開）`
 
 ドキュメント整理系：
 
@@ -80,6 +80,56 @@ issue は内容に応じて3系統で管理する：
 ### 本文
 
 issue テンプレート（`.github/ISSUE_TEMPLATE/`）に従う。
+
+## 検証
+
+PR を作成する前に、変更内容に応じて以下を実行し、全て通ることを確認する。
+CI（`.github/workflows/`）が実行する内容と同じであり、ローカルで通れば CI も通る。
+
+### ドキュメントを変更した場合
+
+docs コンテナ（`rp2040-temp-monitor-docs`）のリポジトリルートで実行する。
+
+``` bash
+# ドキュメントビルド（-W により警告はエラー扱い）
+make rebuild
+
+# メタデータ検査（MD01〜MD08、SRC01、XR01）
+uv run python scripts/metadata_lint.py --config metadata_lint.yaml
+```
+
+`make html` ではなく `make rebuild` を使う。`conf.py` の `needs_fields` を変更しても
+Sphinx は環境の再構築を行わないため、キャッシュが残っているとフィルタ式が NameError になる。
+Makefile の stamp ルールが `conf.py` の変更を検知して `_build/` を破棄するが、明示的に rebuild する方が確実である。
+
+要件の件数や属性を確認したい場合は、生成される `_build/html/needs.json` を参照する。
+README のチェックボックスや本文の記述ではなく、needs.json を数えることで確認する。
+
+``` bash
+python3 -c "
+import json, collections
+d = json.load(open('_build/html/needs.json'))
+needs = list(d['versions'][d['current_version']]['needs'].values())
+c = collections.Counter(n['layer'] for n in needs if n['type'] == 'swreq')
+print(c, 'total:', sum(c.values()))
+"
+```
+
+### ファームウェアを変更した場合
+
+firmware-c コンテナで実行する。
+
+``` bash
+# リンカスクリプトと crt0 の静的検証（セクション配置、必須シンボル、ベクタ表）
+make verify-linker
+
+# boot2 の CRC32 付加と検証
+make boot2-checksum
+```
+
+リポジトリルートから実行する場合は `make -C firmware-c verify-linker` の形になる。
+`make check`（gdb-multiarch / OpenOCD / svdconv の環境確認）は実機デバッグ環境に
+依存するため CI の対象外であり、ローカルの環境確認にのみ使う。
 
 ## Pull Request 運用
 
@@ -98,9 +148,9 @@ PR テンプレート（`.github/pull_request_template.md`）に従う。
 ### マージ前チェック
 
 - 関連 issue が解決される内容になっているか
-- pre-commit のチェックが通っているか
-- ビルドが通るか
-- （将来）CI が通っているか
+- 「検証」の該当コマンドがローカルで通っているか
+- CI（Docs / Firmware Static Verification）が green か
+- 変更が要件やプロセスの記述に影響する場合、関連文書を同一 PR で追従させたか
 
 ### マージ方法
 
