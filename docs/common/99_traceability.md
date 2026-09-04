@@ -32,7 +32,7 @@ type == 'swreq' and status == 'obsolete'
 ```{needbar} Requirements per Layer
 :xlabels: Application, Service, Driver, HAL, Platform
 :show_sum:
-type == 'swreq' and layer == 'application',type == 'swreq' and layer == 'service',type == 'swreq' and layer == 'driver',type == 'swreq' and layer == 'hal', type == 'swreq' and layer == 'platform'
+type == 'swreq' and layer == 'application',type == 'swreq' and layer == 'service',type == 'swreq' and layer == 'driver',type == 'swreq' and layer == 'hal',type == 'swreq' and layer == 'platform'
 ```
 
 ### 品質チェック

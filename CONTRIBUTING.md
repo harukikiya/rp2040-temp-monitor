@@ -94,7 +94,7 @@ docs コンテナ（`rp2040-temp-monitor-docs`）のリポジトリルートで�
 # ドキュメントビルド（-W により警告はエラー扱い）
 make rebuild
 
-# メタデータ検査（MD01~MD08、SRC01、XR01）
+# メタデータ検査（MD01〜MD08、SRC01、XR01）
 uv run python scripts/metadata_lint.py --config metadata_lint.yaml
 ```
 

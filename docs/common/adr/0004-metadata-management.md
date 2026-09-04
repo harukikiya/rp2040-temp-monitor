@@ -2,9 +2,9 @@
 
 ## ステータス
 
-採択（2026-08-16、PR #37 にて採択）
+採択（2026-08-12、PR #37 にて採択）
 
-`scripts/metadata_lint.py` として CI で稼働中。MD01~MD08・SRC01・XR01 の各ルールを毎 PR で検証している。
+`scripts/metadata_lint.py` として CI で稼働中。MD01〜MD08・SRC01・XR01 の各ルールを毎 PR で検証している。
 
 ## 背景
 
