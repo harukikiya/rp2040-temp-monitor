@@ -87,7 +87,7 @@
 :method: demonstration
 :environment: target
 :verifies: SWR_004
-:open_params: TBD_010 I2C速度が未確立のため、合否基準の通信速度は仮置き。解決時期: 段階3-2。TBD-017 GPIO割り当てが未定のため、観測対象のピンは未確定。解決時期: 段階3-2。
+:open_params: TBD-010 I2C速度が未確立のため、合否基準の通信速度は仮置き。解決時期: 段階3-2。TBD-017 GPIO割り当てが未定のため、観測対象のピンは未確定。解決時期: 段階3-2。
 
 **前提条件**
 
