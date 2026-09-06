@@ -18,7 +18,7 @@ frontmatter_required: false
 
 required_fields: [type]
 enums:
-  type: [requirements, design_doc, adr, learning, test_design, progress]
+  type: [requirements, design_doc, adr, learning, verification_design, progress]
   aspice: [SYS.1, SYS.2, SWE.1, SWE.2, SWE.3, SWE.4, SWE.5, SWE.6]
 forbidden_fields:
   timestamp: "P1: git から導出する（手動日付は腐る）"
