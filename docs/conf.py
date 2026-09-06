@@ -67,7 +67,7 @@ needs_types = [
         "directive": "swreq",
         "title": "ソフトウェア要件",
         "prefix": "SWR_",
-        "color": "##FEDCD2",
+        "color": "#FEDCD2",
         "style": "node",
     },
 ]
