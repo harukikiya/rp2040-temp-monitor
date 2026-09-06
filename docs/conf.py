@@ -70,6 +70,13 @@ needs_types = [
         "color": "#FEDCD2",
         "style": "node",
     },
+    {
+        "directive": "swverif",
+        "title": "ソフトウェア検証ケース",
+        "prefix": "SWV_",
+        "color": "#A3C4BC",
+        "style": "node",
+    },
 ]
 
 # 要件のフィールド定義
@@ -108,7 +115,23 @@ needs_fields = {
             "enum": ["application", "service", "driver", "hal", "platform"],
         },
         "nullable": True,
-    }
+    },
+    "method": {
+        "description": "検証手段(IADT: Inspection / Analysis / Demonstration / Test)",
+        "schema": {
+            "type": "string",
+            "enum": ["inspection", "analysis", "demonstration", "test"],
+        },
+        "nullable": True,
+    },
+    "environment": {
+        "description": "検証を実施する環境",
+        "schema": {
+            "type": "string",
+            "enum": ["host", "target", "ci", "review"],
+        },
+        "nullable": True,
+    },
 }
 
 # トレースリレーション
@@ -134,6 +157,8 @@ needs_warnings = {
         "open_params is not None and open_params != '' "
         "and '解決時期:' not in open_params"
     ),
+    "swverif_without_target": "type == 'swverif' and not verifies",
+    "swverif_without_method": "type == 'swverif' and (method is None or method == '')",
 }
 
 # needs.json を出力（metadata linter・将来のレビュワー/RAG の突合先。ADR-0004）
