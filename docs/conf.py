@@ -159,6 +159,9 @@ needs_warnings = {
     ),
     "swverif_without_target": "type == 'swverif' and not verifies",
     "swverif_without_method": "type == 'swverif' and (method is None or method == '')",
+    "approved_swr_without_verification": (
+        "type == 'swreq' and status == 'approved' and not verifies_back"
+    ),
 }
 
 # needs.json を出力（metadata linter・将来のレビュワー/RAG の突合先。ADR-0004）
