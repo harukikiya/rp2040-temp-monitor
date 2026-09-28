@@ -18,3 +18,8 @@ dev = [
     "mcp>=2.2.0",
     "pytest>=9.1.1",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# scripts/ 直下のモジュール（needs_query など）を import できるようにする
+pythonpath = ["scripts"]
