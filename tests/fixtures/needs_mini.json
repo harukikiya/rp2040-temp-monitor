@@ -1,0 +1,68 @@
+{
+    "created": "2026-09-28T10:00:00",
+    "current_version": "",
+    "project": "RP2040 Temparature Monitor",
+    "versions": {
+        "": {
+            "created": "2026-09-28T10:00:00",
+            "needs_amount": 8,
+            "needs": {
+                "SYS_001": {
+                    "id": "SYS_001", "type": "sysreq", "title": "温度を周期的に測定する", "status": "approved",
+                    "content": "システムは温度を周期的に測定しなければならない。",
+                    "refines": [], "refines_back": ["ARC_001", "SWR_001", "SWR_002", "SWR_003"],
+                    "verifies": [], "verifies_back": [],
+                    "docname": "common/10_system_requirements", "lineno": 10,
+                    "avatar": "", "jinja_content": false, "max_amount": ""
+                },
+                "ARC_001": {
+                    "id": "ARC_001", "type": "arc", "title": "層構造", "status": "draft",
+                    "refines": ["SYS_001"], "refines_back": ["ARC_002"],
+                    "verifies": [], "verifies_back": [],
+                    "docname": "common/30_architecture", "lineno": 20
+                },
+                "ARC_002": {
+                    "id": "ARC_002", "type": "arc", "title": "ドライバ層", "status": "draft",
+                    "refines": ["ARC_001"], "refines_back": [],
+                    "verifies": [], "verifies_back": [],
+                    "docname": "common/30_architecture", "lineno": 40
+                },
+                "SWR_001": {
+                    "id": "SWR_001", "type": "swreq", "title": "ADCで温度センサを読む", "status": "approved",
+                    "layer": "driver", "open_params": "サンプリング周期(解決時期: 段階2.5-2)",
+                    "refines": ["SYS_001"], "refines_back": [],
+                    "verifies": [], "verifies_back": ["SWV_001", "SWV_002"],
+                    "docname": "common/20_software_requirements", "lineno": 12,
+                    "avatar": "", "jinja_content": false
+                },
+                "SWR_002": {
+                    "id": "SWR_002", "type": "swreq", "title": "測定値をバッファに蓄える", "status": "draft",
+                    "tbd_items": "TBD-001 バッファ満杯時の挙動は未定。",
+                    "refines": ["SYS_001"], "refines_back": [],
+                    "verifies": [], "verifies_back": [],
+                    "docname": "common/20_software_requirements", "lineno": 30
+                },
+                "SWR_003": {
+                    "id": "SWR_003", "type": "swreq", "title": "旧：測定値を即時送信する", "status": "obsolete",
+                    "refines": ["SYS_001"], "refines_back": [],
+                    "verifies": [], "verifies_back": [],
+                    "docname": "common/20_software_requirements", "lineno": 48
+                },
+                "SWV_001": {
+                    "id": "SWV_001", "type": "swverif", "title": "ADC読み取りの実機確認", "status": "draft",
+                    "method": "demonstration", "environment": "target",
+                    "refines": [], "refines_back": [],
+                    "verifies": ["SWR_001"], "verifies_back": [],
+                    "docname": "common/90_software_verification_design", "lineno": 20
+                },
+                "SWV_002": {
+                    "id": "SWV_002", "type": "swverif", "title": "温度変換式の単体テスト", "status": "draft",
+                    "method": "test", "environment": "host",
+                    "refines": [], "refines_back": [],
+                    "verifies": ["SWR_001"], "verifies_back": [],
+                    "docname": "common/90_software_verification_design", "lineno": 40
+                }
+            }
+        }
+    }
+}
