@@ -102,6 +102,7 @@ SWE.2.1 / 2.2 および SWE.5.1 / 5.2 の細分はプロジェクト独自の記
 ```
 rp2040-temp-monitor/
 ├── CLAUDE.md                  ← このファイル
+├── .mcp.json                  ← Claude Code が起動する MCP サーバーの設定
 ├── .claude/                   ← Claude Code 用の専門指示書
 │   ├── review/                ← レビュー専門ファイル
 │   │   ├── principles.md
@@ -114,7 +115,10 @@ rp2040-temp-monitor/
 ├── metadata_lint.yaml         ← メタデータ検査の設定(ADR-0004)
 ├── scripts/                   ← ツール
 │   ├── metadata_lint.py       ← メタデータ検査(CI で実行)
-│   └── collect_worklog.py     ← 作業時間の集計
+│   ├── collect_worklog.py     ← 作業時間の集計
+│   ├── needs_query.py         ← needs.json 問い合わせのコアロジック
+│   └── needs_mcp_server.py    ← 上記を Claude Code に公開する MCP サーバー
+├── tests/                     ← scripts/ のテスト(pytest)
 ├── .github/
 │   ├── workflows/             ← GitHub Actions(docs / firmware)
 │   ├── ISSUE_TEMPLATE/
@@ -276,6 +280,21 @@ group の階層は本プロジェクトのアーキテクチャに対応させ�
 CLAUDE.md と `.claude/review/principles.md` は起動時に自動的に読み込まれる。
 他のレビューファイル(`doc_review.md`、`typo_check.md` など)は、
 Claude Code が文脈から判断して必要時に参照する。
+
+### 要件の問い合わせ(MCP サーバー `needs`)
+
+`.mcp.json` に登録した MCP サーバーが `_build/html/needs.json` を読み、要件と検証ケースを引くツールを提供する。
+ツールはすべて読み取り専用である。初回起動時に Claude Code が利用の承認を求める。
+
+- `get_need`: 1 件の詳細(本文、上流・下流のリンク、原稿の位置)
+- `search_needs`: タイプ・ステータス・検証環境・キーワードで一覧
+- `trace`: refines / verifies を辿った上流・下流(変更の影響範囲)
+- `status_report`: 件数、検証ケースのない SWR、TBD を持つ要件
+
+needs.json はビルド成果物のため、原稿を変更したら `make rebuild` してから問い合わせる。
+needs.json より新しい原稿があると、ツールの結果に `warning` が付く。
+
+レビューで要件の件数やトレースを確かめるときは、原稿を grep する前にこれらのツールを使うこと。
 
 ### レビュー依頼の例
 

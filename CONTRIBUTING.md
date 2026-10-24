@@ -131,6 +131,14 @@ make boot2-checksum
 `make check`（gdb-multiarch / OpenOCD / svdconv の環境確認）は実機デバッグ環境に
 依存するため CI の対象外であり、ローカルの環境確認にのみ使う。
 
+### Python ツール（`scripts/`）を変更した場合
+
+docs コンテナのリポジトリルートで実行する。
+
+``` bash
+uv run pytest
+```
+
 ## Pull Request 運用
 
 ### タイトル形式
