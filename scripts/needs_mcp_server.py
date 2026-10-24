@@ -9,7 +9,7 @@ print() で標準出力に書くとプロトコルが壊れるため、ログは
 
 使用例：
     uv run python scripts/needs_mcp_server.py
-    uv run python sctipts/needs_mcp_server.py --needs-json tests/fixtures/needs_mini.json
+    uv run python scripts/needs_mcp_server.py --needs-json tests/fixtures/needs_mini.json
 
 通常は .mcp.json の設定に従って Claude Code が起動する。
 """

@@ -62,6 +62,9 @@ jobs:
       - name: Lint metadata
         run: uv run python scripts/metadata_lint.py --config metadata_lint.yaml
 
+      - name: Test tools
+        run: uv run pytest
+
       - name: Upload artifact
         # Pages デプロイ用、master の push 時のみ
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
