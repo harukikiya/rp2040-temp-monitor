@@ -44,6 +44,8 @@ jobs:
         uses: astral-sh/setup-uv@v3
 
       - name: Set up Python
+        # .python-version の版を入れる。ファイルがないと最新版が入り、
+        # その版の wheel がない依存（pillow など）がソースビルドになって失敗する
         run: uv python install
 
       - name: Install Python dependencies
