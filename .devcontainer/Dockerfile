@@ -23,7 +23,7 @@ ENV PATH="/root/.local/bin:${PATH}"
 
 WORKDIR /workspace
 
-COPY pyproject.toml uv.lock* /tmp/build/
+COPY pyproject.toml uv.lock* .python-version /tmp/build/
 RUN cd /tmp/build && (uv sync --frozen || uv sync)
 
 CMD ["bash"]
