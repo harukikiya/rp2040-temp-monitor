@@ -1,0 +1,12 @@
+{
+    "mcpServers": {
+        "needs": {
+            "type": "stdio",
+            "command": "uv",
+            "args": ["run", "--only-group", "dev", "python", "scripts/needs_mcp_server.py"],
+            "env": {
+                "UV_PROJECT_ENVIRONMENT": ".venv-mcp"
+            }
+        }
+    }
+}

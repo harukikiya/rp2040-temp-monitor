@@ -4,6 +4,7 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .venv/
+.venv-mcp/
 
 # Rust(将来用)
 target/
