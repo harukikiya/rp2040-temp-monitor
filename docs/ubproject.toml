@@ -1,12 +1,11 @@
 "$schema" = "https://ubcode.useblocks.com/ubproject.schema.json"
 
-# ubCode の設定（#86 で試用中）。docs/conf.py と同じディレクトリに置く。
+# need の設定（type・フィールド・リンク）。docs/conf.py と同じディレクトリに置く。
 #
-# - 読むのは ubCode（VS Code 拡張・ubc CLI）だけ。Sphinx は conf.py の needs_* を使い続けるため、
-#   needs_from_toml を設定しない限りビルドには影響しない。
-# - [needs] は conf.py の needs_types / needs_fields / needs_links を写したもの。
-#   conf.py を変えたら、こちらも同じように変える。
-# - needs_warnings と needs_build_json は Sphinx 側の機能なので、conf.py にだけ置く。
+# - Sphinx は conf.py の needs_from_toml で、このファイルの [needs] を読む。
+#   ubCode（VS Code 拡張・ubc CLI）は、このファイル全体を読む（ADR-0007）。
+# - needs_warnings と needs_build_json は conf.py に置く（ubCode が受け付けるか未確認のため。#88）。
+# - フィールドのスキーマには type を明示する（省略すると ubCode が設定エラーにする）。
 
 [project]
 name = "RP2040 Temperature Monitor"
