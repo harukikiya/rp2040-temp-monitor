@@ -84,6 +84,7 @@ needs_fields = {
     "status": {
         "description": "要件のステータス",
         "schema": {
+            "type": "string",
             "enum": ["draft", "approved", "obsolete"],
         },
         "nullable": False,

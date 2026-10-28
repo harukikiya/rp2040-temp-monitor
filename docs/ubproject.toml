@@ -54,13 +54,13 @@ style = "node"
 
 [needs.fields.status]
 description = "要件のステータス"
-schema = { enum = ["draft", "approved", "obsolete"] }
+schema = { type = "string", enum = ["draft", "approved", "obsolete"] }
 nullable = false
 
 [needs.fields.type_kind]
 description = "要件の種類(Functional, Timing, Safety等)"
 schema = { type =  "string" }
-nullable = Temperature
+nullable = true
 
 [needs.fields.tbd_items]
 description = "未確定項目"
