@@ -25,7 +25,7 @@ RP2040 の内蔵温度センサを使った学習用ファームウェアプロ�
 
 - **ホスト**: Mac mini (Apple Silicon / aarch64)
 - **コンテナ**: VSCode Dev Containers
-  - docs コンテナ: Sphinx + sphinx-needs + PlantUML(ドキュメントビルド用)
+  - docs コンテナ: Sphinx + sphinx-needs + PlantUML(ドキュメントビルド用)、ubCode(執筆支援の VS Code 拡張。ADR-0007)
   - firmware-c コンテナ: Ubuntu 24.04 + Clang 18 + Arm GNU Toolchain 14.2(C 実装用)
 - **デバッガ**: gdb-multiarch + OpenOCD
 - **書き込み**: USB マスストレージモード (UF2)
@@ -125,7 +125,7 @@ rp2040-temp-monitor/
 │   └── pull_request_template.md
 ├── docs/                      ← Sphinx + sphinx-needs ドキュメント
 │   ├── conf.py
-│   ├── ubproject.toml         ← ubCode の設定（need の設定は conf.py とそろえる。ADR-0007）
+│   ├── ubproject.toml         ← need の設定（Sphinx と ubCode が読む。ADR-0007）
 │   ├── index.md
 │   └── common/                ← ASPICE プロセス順
 │       ├── 00_overview.md
