@@ -1,9 +1,9 @@
 "$schema" = "https://ubcode.useblocks.com/ubproject.schema.json"
 
 # ubCode の設定（#86 で試用中）。docs/conf.py と同じディレクトリに置く。
-# 
+#
 # - 読むのは ubCode（VS Code 拡張・ubc CLI）だけ。Sphinx は conf.py の needs_* を使い続けるため、
-#   needs_from_toml と設定しない限りビルドには影響しない。
+#   needs_from_toml を設定しない限りビルドには影響しない。
 # - [needs] は conf.py の needs_types / needs_fields / needs_links を写したもの。
 #   conf.py を変えたら、こちらも同じように変える。
 # - needs_warnings と needs_build_json は Sphinx 側の機能なので、conf.py にだけ置く。
@@ -59,7 +59,7 @@ nullable = false
 
 [needs.fields.type_kind]
 description = "要件の種類(Functional, Timing, Safety等)"
-schema = { type =  "string" }
+schema = { type = "string" }
 nullable = true
 
 [needs.fields.tbd_items]
@@ -83,7 +83,7 @@ schema = { type = "string", enum = ["application", "service", "driver", "hal", "
 nullable = true
 
 [needs.fields.method]
-description = "検証方法(IADT: Inspection / Analysis / Demonstration / Test)"
+description = "検証手段(IADT: Inspection / Analysis / Demonstration / Test)"
 schema = { type = "string", enum = ["inspection", "analysis", "demonstration", "test"] }
 nullable = true
 
