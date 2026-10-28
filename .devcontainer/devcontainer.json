@@ -11,7 +11,8 @@
             "extensions": [
                 "executablebookproject.myst-highlight",
                 "lextudio.restructuredtext",
-                "ms-python.python"
+                "ms-python.python",
+                "useblocks.ubcode"
             ],
             "settings": {
                 "python.defaultInterpreterPath": "/workspace/.venv/bin/python"
