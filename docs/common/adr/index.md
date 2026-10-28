@@ -15,6 +15,7 @@
 0004-metadata-management
 0005-requirement-approval-gate
 0006-vmodel-document-numbering
+0007-ubcode-adoption
 ```
 
 ## 新規ADRの追加
