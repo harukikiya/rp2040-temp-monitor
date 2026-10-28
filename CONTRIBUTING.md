@@ -101,6 +101,8 @@ uv run python scripts/metadata_lint.py --config metadata_lint.yaml
 `make html` ではなく `make rebuild` を使う。`conf.py` の `needs_fields` を変更しても
 Sphinx は環境の再構築を行わないため、キャッシュが残っているとフィルタ式が NameError になる。
 Makefile の stamp ルールが `conf.py` の変更を検知して `_build/` を破棄するが、明示的に rebuild する方が確実である。
+`conf.py` の need の設定（`needs_types`・`needs_fields`・`needs_links`）を変更した場合は、
+`docs/ubproject.toml`（ubCode の設定）も同じ内容にする（ADR-0007）。
 
 要件の件数や属性を確認したい場合は、生成される `_build/html/needs.json` を参照する。
 README のチェックボックスや本文の記述ではなく、needs.json を数えることで確認する。
