@@ -47,6 +47,8 @@ plantuml = "plantuml"
 plantuml_output_format = "svg"
 
 # -- sphinx-needs settings ---------------------------------------------------
+# needs_types / needs_fields / needs_links は docs/ubproject.toml（ubCode の設定）にも
+# 同じ内容を書いている。変更するときは両方をそろえる（ADR-0007）。
 # 要件タイプの定義
 needs_types = [
     {
@@ -84,6 +86,7 @@ needs_fields = {
     "status": {
         "description": "要件のステータス",
         "schema": {
+            "type": "string",
             "enum": ["draft", "approved", "obsolete"],
         },
         "nullable": False,

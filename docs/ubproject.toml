@@ -1,0 +1,103 @@
+"$schema" = "https://ubcode.useblocks.com/ubproject.schema.json"
+
+# ubCode の設定（#86 で試用中）。docs/conf.py と同じディレクトリに置く。
+#
+# - 読むのは ubCode（VS Code 拡張・ubc CLI）だけ。Sphinx は conf.py の needs_* を使い続けるため、
+#   needs_from_toml を設定しない限りビルドには影響しない。
+# - [needs] は conf.py の needs_types / needs_fields / needs_links を写したもの。
+#   conf.py を変えたら、こちらも同じように変える。
+# - needs_warnings と needs_build_json は Sphinx 側の機能なので、conf.py にだけ置く。
+
+[project]
+name = "RP2040 Temperature Monitor"
+
+[source]
+# conf.py の exclude_patterns に対応（_build/ は .gitignore で除外される）
+extend_exclude = ["common/adr/template.md"]
+
+# Markdown（MyST）だけのプロジェクトなので、md パーサーのみ宣言する。
+# conf.py で myst_enable_extensions を使っていないため、追加の拡張は不要。
+[parse.parsers.md]
+flavour = "myst"
+
+# -- 要件タイプ ---------------------------------------------------------------
+
+[[needs.types]]
+directive = "sysreq"
+title = "システム要件"
+prefix = "SYS_"
+color = "#BFD8D2"
+style = "node"
+
+[[needs.types]]
+directive = "arc"
+title = "アーキテクチャ要件"
+prefix = "ARC_"
+color = "#DF744A"
+style = "node"
+
+[[needs.types]]
+directive = "swreq"
+title = "ソフトウェア要件"
+prefix = "SWR_"
+color = "#FEDCD2"
+style = "node"
+
+[[needs.types]]
+directive = "swverif"
+title = "ソフトウェア検証ケース"
+prefix = "SWV_"
+color = "#A3C4BC"
+style = "node"
+
+# -- フィールド ---------------------------------------------------------------
+
+[needs.fields.status]
+description = "要件のステータス"
+schema = { type = "string", enum = ["draft", "approved", "obsolete"] }
+nullable = false
+
+[needs.fields.type_kind]
+description = "要件の種類(Functional, Timing, Safety等)"
+schema = { type = "string" }
+nullable = true
+
+[needs.fields.tbd_items]
+description = "未確定項目"
+schema = { type = "string" }
+nullable = true
+
+[needs.fields.open_params]
+description = "承認を阻まないパラメータ未確定項目（解決時期の明記が必須。ADR-0005）"
+schema = { type = "string" }
+nullable = true
+
+[needs.fields.rationale]
+description = "要件の根拠"
+schema = { type = "string" }
+nullable = true
+
+[needs.fields.layer]
+description = "要求が属するレイヤ"
+schema = { type = "string", enum = ["application", "service", "driver", "hal", "platform"] }
+nullable = true
+
+[needs.fields.method]
+description = "検証手段(IADT: Inspection / Analysis / Demonstration / Test)"
+schema = { type = "string", enum = ["inspection", "analysis", "demonstration", "test"] }
+nullable = true
+
+[needs.fields.environment]
+description = "検証を実施する環境"
+schema = { type = "string", enum = ["host", "target", "ci", "review"] }
+nullable = true
+
+# -- トレースリレーション -------------------------------------------------------
+
+[needs.links.refines]
+outgoing = "refines"
+incoming = "refined by"
+
+[needs.links.verifies]
+outgoing = "verifies"
+incoming = "verified by"

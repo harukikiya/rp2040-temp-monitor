@@ -125,6 +125,7 @@ rp2040-temp-monitor/
 │   └── pull_request_template.md
 ├── docs/                      ← Sphinx + sphinx-needs ドキュメント
 │   ├── conf.py
+│   ├── ubproject.toml         ← ubCode の設定（need の設定は conf.py とそろえる。ADR-0007）
 │   ├── index.md
 │   └── common/                ← ASPICE プロセス順
 │       ├── 00_overview.md
