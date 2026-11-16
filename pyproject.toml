@@ -21,5 +21,6 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-# scripts/ 直下のモジュール（needs_query など）を import できるようにする
-pythonpath = ["scripts"]
+# scripts/ 直下のモジュール（needs_query など）と、docs/_ext/ の拡張のコア
+# （swv_matrix_core）を import できるようにする
+pythonpath = ["scripts", "docs/_ext"]
